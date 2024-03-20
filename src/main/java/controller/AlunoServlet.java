@@ -1,10 +1,11 @@
 package controller;
 
 import java.io.IOException;
-import java.time.LocalDate;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -87,10 +88,22 @@ public class AlunoServlet extends HttpServlet {
 						saida = excluirAluno(a);
 						a = null;
 					}
+					if(cmd.contains("Buscar")) {
+						a = buscarAluno(a);
+					}
+					if(cmd.contains("Listar")) {
+						alunos = listarAlunos();
+					}
 				} catch(SQLException | ClassNotFoundException e) {
-					
+					erro = e.getMessage();
 				} finally {
+					request.setAttribute("saida", saida);
+					request.setAttribute("erro", erro);
+					request.setAttribute("aluno", a);
+					request.setAttribute("alunos", alunos);
 					
+					RequestDispatcher rd = request.getRequestDispatcher("aluno.jsp");
+					rd.forward(request, response);
 				}
 	}
 }
