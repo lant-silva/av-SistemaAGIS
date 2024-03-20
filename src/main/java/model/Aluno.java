@@ -16,12 +16,22 @@ public class Aluno {
 	String ra;
 	String nome;
 	String nomeSocial;
-	LocalDate dataNasc;
+	String dataNasc;
 	List<Telefone> telefones;
 	String emailPessoal;
 	String emailCorporativo;
-	LocalDate dataSegundoGrau;
+	String dataSegundoGrau;
 	String instituicaoSegundoGrau;
 	double pontuacaoVestibular;
 	int posicaoVestibular;
+	String anoIngresso;
+	String semestreIngresso;
+	String semestreGraduacao;
+	String anoLimite;
+	
+	public void addTelefone(String telefone) {
+		Telefone t = new Telefone();
+		t.setTelefone(telefone);
+		telefones.add(t);
+	}
 }

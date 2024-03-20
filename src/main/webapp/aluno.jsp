@@ -8,12 +8,12 @@
 <link rel="stylesheet" href="./css/styles.css">
 <title>AGIS - Aluno</title>
 <header>
-	<h1 align="center">Bem Vindo ao AGIS</h1>
-</header>
-</head>
-<body>
+	<h1 align="center">Gerenciamento de Alunos</h1>
 	<div>
 		<jsp:include page="menu.jsp" />
 	</div>
+</header>
+</head>
+<body>
 </body>
 </html>
