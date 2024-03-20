@@ -4,29 +4,28 @@
 <html>
 <head>
 <meta charset="ISO-8859-1">
+<link rel="stylesheet" href="./css/styles.css">
 <title>Bem-Vindo ao AGIS</title>
-<style>
-header {
-  background-color: #3498db;
-  font-family: 'Cambria', sans-serif;
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
-  padding: 20px;
-}
-header h1 {
-  color: #fff;
-  margin: 0;
-}
-
-.main-content {
-  padding: 20px;
-}
-</style>
-<header>
+<header> <!-- Cabeçalho pra dar boas vindas pro usuario -->
 	<h1 align="center">Bem Vindo ao AGIS</h1>
 </header>
 </head>
 <body>
-	<h1 >Teste</h1>
-	
+<div align="center"> 
+<!--
+Essa div tem dois botões, um para acessar a área da secretaria,
+onde estarão todos os CRUDs, e a matrícula, onde o aluno
+poderá realizar a matricula 
+-->
+	</br>
+	</br>
+	<h1 class="texto">Acesso ao sistema</h1>
+	</br>
+	</br>
+	<div class="menu">
+		<li><a href="secretaria.jsp">Secretaria</a></li>
+		<li><a href="/matricula">Matrícula</a></li>
+	</div>
+</div>
 </body>
 </html>

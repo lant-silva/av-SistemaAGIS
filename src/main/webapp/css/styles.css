@@ -1,7 +1,72 @@
 @charset "ISO-8859-1";
+/*
+Mensagem pro davi: Quando for fazer o front, liga as classes direitinho,
+eu ainda vou fazer os servlets e as coisas la
+não esquece de olhar o nome direitinho das classes pra fazer as ligações
+de forma correta
+*/
+
 header {
   background-color: #3498db;
-  font-family: 'Cambria', sans-serif; 
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); 
-  padding: 20px; 
+  font-family: 'Cambria', sans-serif;
+  box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+}
+header h1 {
+  color: #fff;
+  margin: 0;
+}
+
+.texto{
+	font-family: 'Cambria', sans-serif;
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.menu {
+  list-style-type: none;
+  padding: 0;
+}
+
+.menu li {
+  display: inline;
+}
+
+.menu li a {
+  display: inline-block;
+  padding: 15px 25px;
+  text-decoration: none; 
+  background-color: #3498db;
+  color: #fff;
+  border-radius: 5px;
+  margin-right: 10px;
+  font-family: 'Cambria', sans-serif;
+  font-size: 20px;
+}
+
+.menu li a:hover {
+  background-color: #2980b9;
+}
+
+.menu-bar {
+  background-color: #3498db; /* Fundo azul */
+  font-family: 'Cambria', sans-serif; /* Fonte Cambria */
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); /* Sombra fraca */
+}
+
+/* Estilo dos itens do menu */
+.menu-item {
+  display: inline-block; /* Exibe os itens de menu em linha */
+  margin: 10px; /* Espaçamento entre os itens do menu */
+}
+
+.menu-item a {
+  text-decoration: none; /* Remove a decoração de texto dos links */
+  color: #fff; /* Cor do texto dos links */
+  padding: 10px 20px; /* Espaçamento interno dos itens do menu */
+  font-family: 'Cambria', sans-serif;
+  font-size: 20px;
+}
+
+.menu-item a:hover {
+  background-color: #2980b9; /* Cor de fundo dos itens do menu ao passar o mouse */
 }
