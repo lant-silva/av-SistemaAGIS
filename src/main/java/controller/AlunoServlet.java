@@ -11,6 +11,10 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Aluno;
+import model.Telefone;
+import persistence.AlunoDao;
+import persistence.GenericDao;
+import persistence.TelefoneDao;
 
 /**
  * Servlet implementation class AlunoServlet
@@ -54,8 +58,10 @@ public class AlunoServlet extends HttpServlet {
 				//saida
 				String saida="";
 				String erro="";
+				String listar = null;
 				Aluno a = new Aluno();
 				List<Aluno> alunos = new ArrayList<>();
+				List<Telefone> telefones = new ArrayList<>();
 				
 				if(!cmd.contains("Listar")) {
 					a.setRa(ra);
@@ -75,9 +81,16 @@ public class AlunoServlet extends HttpServlet {
 					a.setAnoIngresso(anoIngresso);
 					a.setSemestreIngresso(semestreIngresso);
 				}
+				if(cmd.contains("Add")) {
+					a.addTelefone(telefone);
+				}
+				if(cmd.contains("Remover")) {
+					a.remTelefone(telefone);
+				}
 				try {
 					if(cmd.contains("Cadastrar")) {
 						saida = cadastrarAluno(a);
+						inserirTelefones(telefones, a);
 						a = null;
 					}
 					if(cmd.contains("Alterar")) {
@@ -93,6 +106,7 @@ public class AlunoServlet extends HttpServlet {
 					}
 					if(cmd.contains("Listar")) {
 						alunos = listarAlunos();
+						listar = "sim";
 					}
 				} catch(SQLException | ClassNotFoundException e) {
 					erro = e.getMessage();
@@ -101,9 +115,51 @@ public class AlunoServlet extends HttpServlet {
 					request.setAttribute("erro", erro);
 					request.setAttribute("aluno", a);
 					request.setAttribute("alunos", alunos);
+					request.setAttribute("telefones", telefones);
+					request.setAttribute("listar", listar);
 					
 					RequestDispatcher rd = request.getRequestDispatcher("aluno.jsp");
 					rd.forward(request, response);
 				}
+	}
+
+	private void inserirTelefones(List<Telefone> telefones, Aluno a) throws ClassNotFoundException, SQLException {
+		GenericDao gDao = new GenericDao();
+		TelefoneDao tDao = new TelefoneDao(gDao);
+		tDao.insereTelefone(telefones, a);
+	}
+
+	private String cadastrarAluno(Aluno a) throws ClassNotFoundException, SQLException {
+		GenericDao gDao = new GenericDao();
+		AlunoDao aDao = new AlunoDao(gDao);
+		String saida = aDao.iud("I", a);
+		return saida;
+	}
+
+	private String atualizarAluno(Aluno a) throws ClassNotFoundException, SQLException {
+		GenericDao gDao = new GenericDao();
+		AlunoDao aDao = new AlunoDao(gDao);
+		String saida = aDao.iud("U", a);
+		return saida;
+	}
+
+	private String excluirAluno(Aluno a) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private Aluno buscarAluno(Aluno a) throws ClassNotFoundException, SQLException {
+		GenericDao gDao = new GenericDao();
+		AlunoDao aDao = new AlunoDao(gDao);
+		a = aDao.consultar(a);
+		return a;
+	}
+
+	private List<Aluno> listarAlunos() throws ClassNotFoundException, SQLException {
+		GenericDao gDao = new GenericDao();
+		List<Aluno> alunos = new ArrayList<>();
+		AlunoDao aDao = new AlunoDao(gDao);
+		alunos = aDao.listar();
+		return alunos;
 	}
 }

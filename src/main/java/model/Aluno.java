@@ -1,7 +1,8 @@
 package model;
 
-import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,7 +32,14 @@ public class Aluno {
 	
 	public void addTelefone(String telefone) {
 		Telefone t = new Telefone();
+		if(telefones == null) {
+			telefones = new ArrayList<>();
+		}
 		t.setTelefone(telefone);
 		telefones.add(t);
+	}
+
+	public void remTelefone(String telefone) {
+		telefones.remove(telefones.size()-1);
 	}
 }

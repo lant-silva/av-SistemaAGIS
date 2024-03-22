@@ -70,3 +70,82 @@ header h1 {
 .menu-item a:hover {
   background-color: #2980b9; /* Cor de fundo dos itens do menu ao passar o mouse */
 }
+
+.input_data {
+    border: 3px solid black;
+    border-radius: 4px;
+    height: 30px;
+    width: px;
+    font-size: 20px;
+    font-family: Cambria, sans-serif;
+}
+ 
+label {
+    font-weight: bold;
+    color: black;
+    font-size: 20px;
+    font-family: Cambria, sans-serif;
+}
+ 
+.input_data_id {
+    border: 3px solid black;
+    border-radius: 4px;
+    height: 30px;
+    width: 50px;
+    font-size: 20px;
+    font-family: Cambria, sans-serif;
+}
+ 
+.input_data_date {
+    border: 3px solid black;
+    border-radius: 4px;
+    height: 30px;
+    width: 180px;
+    font-size: 20px;
+    font-family: Cambria, sans-serif;
+}
+ 
+.table_round {
+    border: 1px solid black;
+    border-radius: 10px;
+    font-family: Cambria, sans-serif;
+}
+ 
+.table_round {
+    border-collapse: collapse;
+    width: 65%;
+}
+ 
+.table_round th, .table_round td {
+    border: 1px solid #7093B4;
+    text-align: left;
+    padding: 8px;
+    font-size: 18px;
+}
+ 
+.table_round th {
+    background-color: #f2f2f2;
+}
+ 
+.table_round caption {
+    font-size: 20px;
+    font-weight: bold;
+    color: #82A594;
+    text-align: center;
+    padding: 10px;
+}
+ 
+.th_dash {
+    border: 0.5px solid blue;
+    border-style: dashed;
+}
+
+container {
+    margin: auto;
+    width: 50%;
+    border: 7px solid gray;
+    border-radius: 50px;
+    padding-bottom: 20px;
+    box-shadow: 20px 20px 2px #766B5D;
+    font-family: Cambria, sans-serif;
+}
