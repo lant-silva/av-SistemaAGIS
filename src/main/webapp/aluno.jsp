@@ -100,6 +100,12 @@
 							value=''></td>
 					</tr>
 					<tr>
+						<td colspan="4"><input class="input_data" type="number"
+							min="1" max="2" id="semestreGraduacao" name="semestreGraduacao" 
+							placeholder="Semestre de Graduação"
+							value=''></td>
+					</tr>
+					<tr>
 						<td><input type="submit" id="botao" name="botao"
 							value="Cadastrar"></td>
 						<td><input type="submit" id="botao" name="botao"

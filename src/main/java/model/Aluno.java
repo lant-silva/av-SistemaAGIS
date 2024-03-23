@@ -18,7 +18,6 @@ public class Aluno {
 	String nome;
 	String nomeSocial;
 	String dataNasc;
-	List<Telefone> telefones;
 	String emailPessoal;
 	String emailCorporativo;
 	String dataSegundoGrau;
@@ -29,17 +28,4 @@ public class Aluno {
 	String semestreIngresso;
 	String semestreGraduacao;
 	String anoLimite;
-	
-	public void addTelefone(String telefone) {
-		Telefone t = new Telefone();
-		if(telefones == null) {
-			telefones = new ArrayList<>();
-		}
-		t.setTelefone(telefone);
-		telefones.add(t);
-	}
-
-	public void remTelefone(String telefone) {
-		telefones.remove(telefones.size()-1);
-	}
 }

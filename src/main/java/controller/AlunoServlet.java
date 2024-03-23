@@ -61,6 +61,7 @@ public class AlunoServlet extends HttpServlet {
 				String listar = null;
 				Aluno a = new Aluno();
 				List<Aluno> alunos = new ArrayList<>();
+				Telefone t = new Telefone();
 				List<Telefone> telefones = new ArrayList<>();
 				
 				if(!cmd.contains("Listar")) {
@@ -71,7 +72,7 @@ public class AlunoServlet extends HttpServlet {
 					a.setNome(nome);
 					a.setNomeSocial(nomeSocial);
 					a.setDataNasc(dataNasc);
-					a.addTelefone(telefone);
+					t.setTelefone(telefone);
 					a.setEmailPessoal(emailPessoal);
 					a.setEmailCorporativo(emailCorporativo);
 					a.setDataSegundoGrau(dataSegundoGrau);
@@ -82,10 +83,10 @@ public class AlunoServlet extends HttpServlet {
 					a.setSemestreIngresso(semestreIngresso);
 				}
 				if(cmd.contains("Add")) {
-					a.addTelefone(telefone);
+					telefones.add(t);
 				}
 				if(cmd.contains("Remover")) {
-					a.remTelefone(telefone);
+					telefones.remove(telefones.size()-1);
 				}
 				try {
 					if(cmd.contains("Cadastrar")) {
@@ -108,6 +109,7 @@ public class AlunoServlet extends HttpServlet {
 						alunos = listarAlunos();
 						listar = "sim";
 					}
+					
 				} catch(SQLException | ClassNotFoundException e) {
 					erro = e.getMessage();
 				} finally {
