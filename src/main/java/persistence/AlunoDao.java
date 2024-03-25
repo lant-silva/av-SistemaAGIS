@@ -21,7 +21,7 @@ public class AlunoDao implements ICrud<Aluno>, IIud<Aluno>{
 	@Override
 	public String iud(String acao, Aluno a) throws SQLException, ClassNotFoundException {
 		Connection c = gDao.getConnection();
-		String sql = "(CALL sp_iudaluno (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		String sql = "(CALL sp_iudaluno (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?))";
 		CallableStatement cs = c.prepareCall(sql);
 		cs.setString(1, acao);
 		cs.setString(2, a.getCpf());
