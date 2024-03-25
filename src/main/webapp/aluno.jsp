@@ -10,7 +10,7 @@
 <header>
 	<h1 align="center">Gerenciamento de Alunos</h1>
 	<div>
-		<jsp:include page="menu.jsp" />
+		<jsp:include page="menusecretaria.jsp" />
 	</div>
 </header>
 </head>

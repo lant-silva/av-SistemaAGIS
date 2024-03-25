@@ -9,7 +9,7 @@
 <header>
 	<h1 align="center">Menu Secretaria</h1>
 	<div>
-		<jsp:include page="menu.jsp" />
+		<jsp:include page="menusecretaria.jsp" />
 	</div>
 </header>
 </head>

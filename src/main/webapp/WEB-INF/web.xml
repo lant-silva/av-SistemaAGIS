@@ -14,4 +14,24 @@
     <servlet-name>AlunoServlet</servlet-name>
     <url-pattern>/aluno</url-pattern>
   </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>DisciplinaServlet</display-name>
+    <servlet-name>DisciplinaServlet</servlet-name>
+    <servlet-class>controller.DisciplinaServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>DisciplinaServlet</servlet-name>
+    <url-pattern>/disciplina</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>CursoServlet</display-name>
+    <servlet-name>CursoServlet</servlet-name>
+    <servlet-class>controller.CursoServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>CursoServlet</servlet-name>
+    <url-pattern>/curso</url-pattern>
+  </servlet-mapping>
 </web-app>

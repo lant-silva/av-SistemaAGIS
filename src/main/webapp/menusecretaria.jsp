@@ -11,6 +11,8 @@
 		<ul>
 			<li class="menu-item"><a href="viewchoose.jsp">Sair</a>
 			<li class="menu-item"><a href="aluno.jsp">Aluno</a>
+			<li class="menu-item"><a href="curso.jsp">Curso</a>
+			<li class="menu-item"><a href="disciplina.jsp">Disciplina</a>
 		</ul>
 	</nav>
 </body>
