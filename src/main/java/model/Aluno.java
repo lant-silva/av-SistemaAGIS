@@ -1,5 +1,7 @@
 package model;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,6 +17,7 @@ public class Aluno {
 	String nome;
 	String nomeSocial;
 	String dataNasc;
+	List<Telefone> telefones;
 	String emailPessoal;
 	String emailCorporativo;
 	String dataSegundoGrau;

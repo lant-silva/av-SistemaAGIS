@@ -21,7 +21,7 @@ public class CursoDao implements IIud<Curso>, ICrud<Curso>{
 	@Override
 	public String iud(String acao, Curso cr) throws SQLException, ClassNotFoundException {
 		Connection c = gDao.getConnection();
-		String sql = "(CALL sp_iudcurso (?,?,?,?,?,?,?))";
+		String sql = "CALL sp_iudcurso (?,?,?,?,?,?,?)";
 		CallableStatement cs = c.prepareCall(sql);
 		cs.setString(1, acao);
 		cs.setInt(2, cr.getCodigo());
@@ -71,6 +71,7 @@ public class CursoDao implements IIud<Curso>, ICrud<Curso>{
 			cr.setCargaHoraria(rs.getInt("carga_horaria"));
 			cr.setSigla(rs.getString("sigla"));
 			cr.setNotaEnade(rs.getInt("nota_enade"));
+			cursos.add(cr);
 		}
 		rs.close();
 		ps.close();

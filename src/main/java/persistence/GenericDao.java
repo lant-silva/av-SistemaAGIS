@@ -8,14 +8,15 @@ public class GenericDao {
 	private Connection c;
 	
 	public Connection getConnection() throws ClassNotFoundException, SQLException{
-		String hostName= "localhost";
-		String dbName = "agis";
-		String user = "agis";
-		String senha = "12345678";
-		Class.forName("net.sourceforge.jtds.jdbc.Driver");//
-		c = DriverManager.getConnection(String.format(
-				"jdbc:jtds:sqlserver://%s:1433;databaseName=%s;user=%s;password=%s;", hostName, dbName, user, senha)
-				);
+		String hostname = "localhost";
+		String port = "1433";
+		String db = "agis";
+		String user = "sa";
+		String pass = "luiz2002";
+		String host = "jdbc:jtds:sqlserver://";
+		String uri = host+hostname+":"+port+";databaseName="+db+";user="+user+";password="+pass;
+		Class.forName("net.sourceforge.jtds.jdbc.Driver");
+		c = DriverManager.getConnection(uri);
 		return c;
 	}
 }
