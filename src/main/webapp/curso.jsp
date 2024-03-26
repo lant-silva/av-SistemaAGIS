@@ -16,7 +16,7 @@
 </head>
 <body>
 	<div align="center" class="container">
-		<form action="aluno" method="post">
+		<form action="curso" method="post">
 			<table>
 				<tr>
 					<td colspan="3"><input class="input_data" type="number"
@@ -78,6 +78,33 @@
 			<H2>
 				<b><c:out value="${erro }" /></b>
 			</H2>
+		</c:if>
+	</div>
+	</br>
+	<div align="center">
+		<c:if test="${not empty cursos }">
+			<table class="table_round">
+				<thead>
+					<tr>
+						<th>Codigo</th>
+						<th>Nome</th>
+						<th>Carga Horária</th>
+						<th>Sigla</th>
+						<th>Nota Enade</th>
+					</tr>
+				</thead>
+				<tbody>
+					<c:forEach var="c" items="${cursos }">
+						<tr>
+							<td><c:out value="${c.codigo}" /></td>
+							<td><c:out value="${c.nome}" /></td>
+							<td><c:out value="${c.cargaHoraria}" /></td>
+							<td><c:out value="${c.sigla}" /></td>
+							<td><c:out value="${c.notaEnade}" /></td>
+						</tr>
+					</c:forEach>
+				</tbody>
+			</table>
 		</c:if>
 	</div>
 </body>

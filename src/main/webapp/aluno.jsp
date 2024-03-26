@@ -121,9 +121,9 @@
 	</div>
 	<br />
 	<div align="center">
-		<c:if test="${not empty erro }">
+		<c:if test="${not empty saida }">
 			<H2>
-				<b><c:out value="${erro }" /></b>
+				<b><c:out value="${saida }" /></b>
 			</H2>
 		</c:if>
 	</div>
