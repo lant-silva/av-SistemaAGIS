@@ -22,8 +22,10 @@ posicao_vestibular		INT				NOT NULL,
 ano_ingresso			CHAR(4)			NOT NULL,
 semestre_ingresso		CHAR(1)			NOT NULL,
 semestre_graduacao		CHAR(6)			NOT NULL,
-ano_limite				CHAR(6)			NOT NULL
+ano_limite				CHAR(6)			NOT NULL,
+curso_codigo			INT				NOT NULL
 PRIMARY KEY(cpf)
+FOREIGN KEY(curso_codigo) REFERENCES curso(codigo)
 )
 
 CREATE TABLE aluno_telefone(
@@ -45,16 +47,12 @@ PRIMARY KEY(codigo)
 CREATE TABLE disciplina(
 codigo					INT				NOT NULL,
 nome					VARCHAR(100)	NOT NULL,
-qtd_horas				INT				NOT NULL
+qtd_aulas				INT				NOT NULL,
+horario					TIME			NOT NULL,
+dia						VARCHAR(20)		NOT NULL,
+curso_codigo				INT				NOT NULL
 PRIMARY KEY(codigo)
-)
-
-CREATE TABLE disciplina_curso(
-codigo_curso			INT				NOT NULL,
-codigo_disciplina		INT				NOT NULL
-PRIMARY KEY(codigo_curso, codigo_disciplina)
-FOREIGN KEY(codigo_curso) REFERENCES curso(codigo),
-FOREIGN KEY(codigo_disciplina) REFERENCES disciplina(codigo)
+FOREIGN KEY(curso_codigo) REFERENCES curso(codigo)
 )
 
 CREATE TABLE conteudo(
@@ -66,7 +64,7 @@ FOREIGN KEY(codigo_disciplina) REFERENCES disciplina(codigo)
 )
 
 CREATE TABLE matricula(
-codigo					INT				NOT NULL	IDENTITY(1001,1),
+codigo					INT				NOT NULL,
 aluno_cpf				CHAR(11)		NOT NULL,
 turno					VARCHAR(20)		NOT NULL,
 codigo_curso			INT				NOT NULL
@@ -207,6 +205,7 @@ CREATE PROCEDURE sp_iudaluno(@acao CHAR(1),
 				 		     @semestreingresso CHAR(1),
 				 		     @semestregraduacao CHAR(6),
 				 		     @anolimite CHAR(6) OUTPUT,
+							 @cursocodigo INT,
 				 		     @saida VARCHAR(300) OUTPUT)
 AS
 DECLARE @cpfvalido BIT = 0
@@ -246,7 +245,7 @@ IF(UPPER(@acao) = 'I')
 BEGIN
 	INSERT INTO aluno (cpf, ra, nome, nome_social, data_nasc, email_pessoal, email_corporativo,
 	data_segundograu, instituicao_segundograu, pontuacao_vestibular, posicao_vestibular,
-	ano_ingresso, semestre_ingresso, semestre_graduacao, ano_limite) VALUES
+	ano_ingresso, semestre_ingresso, semestre_graduacao, ano_limite, curso_codigo) VALUES
 	(@cpf,
 	 @ra,
 	 @nome,
@@ -261,7 +260,8 @@ BEGIN
 	 @anoingresso,
 	 @semestreingresso,
 	 @semestregraduacao,
-	 @anolimite)
+	 @anolimite,
+	 @cursocodigo)
 	SET @saida = 'Aluno inserido'
 END
 ELSE 
@@ -281,11 +281,19 @@ BEGIN
 		ano_ingresso = @anoingresso,
 		semestre_ingresso = @semestreingresso,
 		semestre_graduacao = @semestregraduacao,
-		ano_limite = @anolimite
+		ano_limite = @anolimite,
+		curso_codigo = @cursocodigo
 	WHERE cpf = @cpf
 	SET @saida = 'Aluno atualizado'
 END
 ELSE 
+IF(UPPER(@acao) = 'D')	
+BEGIN
+	DELETE aluno
+	WHERE cpf = @cpf
+	SET @saida = 'Aluno removido'
+END
+ELSE
 BEGIN 
 	RAISERROR('Erro desconhecido', 16, 1)
 END
@@ -293,8 +301,6 @@ END
 DECLARE @saida VARCHAR(200)
 EXEC sp_iudaluno 'I', '52169314814', 0, 'fulano', 'fulano', '2000-01-01', 'fulano@email.com', 'fulano@email.com', '2000-01-01', 'instituicao', 800, 10, '2002', '1', '20051', '0', @saida OUTPUT
 PRINT @saida
-
-SELECT * FROM aluno 
 
 -- Procedure IUD Cursos
 --------------------------------------------------------------------------
@@ -332,3 +338,199 @@ EXEC sp_iudcurso 'I', 101, 'Análise e Desenvolvimento de Sistemas', 2800, 'ADS'
 PRINT @saida
 
 SELECT * FROM curso
+
+-- Procedure IUD Disciplina
+----------------------------------------------------------------------------------------------
+
+CREATE PROCEDURE sp_iuddisciplina (@acao CHAR(1), @codigo INT, @nome VARCHAR(100), @qtdaulas INT, @horario TIME, @diasemana VARCHAR(20), @cursocodigo INT, @saida VARCHAR(200) OUTPUT)
+AS
+IF(UPPER(@acao) = 'I')
+BEGIN
+	
+	--Verificar se a disciplina não é duplicada com outro curso
+	IF EXISTS(SELECT curso_codigo FROM disciplina WHERE curso_codigo = @cursocodigo AND nome = @nome)
+	BEGIN
+		RAISERROR('A disciplina já existe em um curso, remova a disciplina desse curso ou crie uma semelhante.', 16, 1)
+		RETURN
+	END
+	ELSE
+	BEGIN
+		INSERT INTO disciplina VALUES
+		(@codigo, @nome, @qtdaulas, @horario, @diasemana, @cursocodigo)
+		SET @saida = 'Curso inserido'
+	END
+END
+ELSE
+IF(UPPER(@acao) = 'U')
+BEGIN
+	--Verificar se a disciplina não é duplicada com outro curso
+	IF EXISTS(SELECT curso_codigo FROM disciplina WHERE curso_codigo = @cursocodigo AND nome = @nome)
+	BEGIN
+		RAISERROR('A disciplina já existe em um curso, remova a disciplina desse curso ou crie uma semelhante.', 16, 1)
+		RETURN
+	END
+	ELSE
+	BEGIN
+		UPDATE disciplina
+		SET nome = @nome, qtd_aulas = @qtdaulas, horario = @horario, dia = @diasemana, curso_codigo = @cursocodigo
+		WHERE codigo = @codigo
+		SET @saida = 'Curso atualizado'
+	END
+END
+ELSE
+IF(UPPER(@acao) = 'D')
+BEGIN
+	DELETE disciplina
+	WHERE codigo = @codigo
+	SET @saida = 'Disciplina removida'
+END
+ELSE
+BEGIN
+	RAISERROR('Operação inválida', 16, 1)
+END
+
+-- Procedure Conteudo
+-------------------------------------------------------------------------
+
+CREATE PROCEDURE sp_iudconteudo (@acao CHAR(1), @codigo INT, @descricao VARCHAR(200), @codigodisciplina INT, @saida VARCHAR(200) OUTPUT)
+AS
+IF(UPPER(@acao) = 'I')
+BEGIN
+	INSERT INTO conteudo VALUES
+	(@codigo, @descricao, @codigodisciplina)
+	SET @saida = 'Conteudo inserido'
+END
+ELSE
+IF(UPPER(@acao) = 'U')
+BEGIN
+	UPDATE conteudo
+	SET descricao = @descricao, codigo_disciplina = @codigodisciplina
+	WHERE codigo = @codigo
+	SET @saida = 'Conteudo atualizado'
+END
+ELSE
+IF(UPPER(@acao) = 'D')
+BEGIN
+	DELETE conteudo
+	WHERE codigo = @codigo
+	SET @saida = 'Conteudo removido'
+END
+ELSE
+BEGIN
+	RAISERROR('Operação inválida', 16, 1)
+END
+
+-- View Alunos
+--------------------------------------------------------------------------
+
+CREATE VIEW v_alunos
+AS
+SELECT a.cpf AS cpf, a.ra AS ra, a.nome AS nome, a.nome_social AS nome_social, a.data_nasc AS data_nasc, a.email_pessoal AS email_pessoal, a.email_corporativo AS email_corporativo, a.data_segundograu AS data_segundograu, 
+	   a.instituicao_segundograu AS instituicao_segundograu, a.pontuacao_vestibular AS pontuacao_vestibular, a.posicao_vestibular AS posicao_vestibular, a.ano_ingresso AS ano_ingresso, a.semestre_ingresso AS semestre_ingresso,
+	   a.semestre_graduacao AS semestre_graduacao, a.ano_limite AS ano_limite, c.sigla AS curso_sigla, a.curso_codigo AS curso_codigo
+FROM aluno a, curso c
+WHERE a.curso_codigo = c.codigo
+
+SELECT * FROM v_alunos
+
+-- View Disciplinas
+------------------------------------------------------------------------------
+
+CREATE VIEW v_disciplinas
+AS
+SELECT d.codigo AS codigo, d.nome AS nome, d.qtd_aulas AS qtd_aulas, SUBSTRING(CAST(d.horario AS VARCHAR), 1, 5) AS horario, d.dia AS dia, d.curso_codigo AS curso_codigo
+FROM disciplina d, curso c
+WHERE d.curso_codigo = c.codigo
+
+SELECT * FROM v_disciplinas
+
+-- View Conteudo
+-------------------------------------------------------------------------------------
+
+CREATE VIEW v_conteudos
+AS
+SELECT c.codigo AS codigo, c.descricao AS descricao, c.codigo_disciplina AS codigo_disciplina
+FROM conteudo c, disciplina d
+WHERE c.codigo_disciplina = d.codigo
+
+SELECT * FROM v_conteudos
+
+-- Testes
+--------------------------------------------------------------------------------------
+
+DELETE curso
+
+INSERT INTO curso VALUES
+(101, 'Análise e Desenvolvimento de Sistemas', 2800, 'ADS', 5),
+(102, 'Desenvolvimento de Software Multiplataforma', 1400, 'DSM', 5),
+(103, 'Recursos Humanos', 1400, 'GRH', 4)
+
+-- Curso 101
+INSERT INTO disciplina VALUES
+(1001, 'Laboratório de Banco de Dados', 4, '14:50', 'Segunda', 101),
+(1002, 'Banco de Dados', 4, '14:50', 'Terça', 101),
+(1003, 'Algorítmos e Lógica de Programação', 4, '14:50', 'Segunda', 101),
+(1004, 'Matemática Discreta', 4, '13:00', 'Quinta', 101),
+(1005, 'Linguagem de Programação', 4, '14:50', 'Terça', 101),
+(1006, 'Estruturas de Dados', 2, '13:00', 'Terça', 101),
+(1007, 'Programação Mobile', 4, '13:00', 'Sexta', 101),
+(1008, 'Empreendedorismo', 2, '13:00', 'Quarta', 101),
+(1009, 'Ética e Responsabilidade', 2, '16:50', 'Segunda', 101),
+(1010, 'Administração Geral', 4, '14:50', 'Terça', 101),
+(1011, 'Sistemas de Informação', 4, '13:00', 'Terça', 101),
+(1012, 'Gestão e Governança de TI', 4, '14:50', 'Sexta', 101),
+(1013, 'Redes de Computadores', 4, '14:50', 'Quinta', 101),
+(1014, 'Contabilidade', 2, '13:00', 'Quarta', 101),
+(1015, 'Economia e Finanças', 4, '13:00', 'Quarta', 101),
+(1016, 'Arquitetura e Organização de Computadores', 4, '13:00', 'Segunda', 101),
+(1017, 'Laboratório de Hardware', 4, '13:00', 'Segunda', 101),
+(1018, 'Sistemas Operacionais', 4, '14:50', 'Quinta', 101),
+(1019, 'Sistemas Operacionais 2', 4, '14:50', 'Sexta', 101),
+(1020, 'Programação Web', 4, '13:00', 'Terça', 101),
+(1021, 'Programação em Microinformática', 2, '13:00', 'Sexta', 101),
+(1022, 'Programação Linear', 2, '13:00', 'Segunda', 101),
+(1023, 'Cálculo', 4, '13:00', 'Segunda', 101),
+(1024, 'Teste de Software', 2, '13:00', 'Quinta', 101),
+(1025, 'Engenharia de Software 1', 4, '13:00', 'Segunda', 101),
+(1026, 'Engenharia de Software 2', 4, '13:00', 'Terça', 101),
+(1027, 'Engenharia de Software 3', 4, '14:50', 'Segunda', 101),
+(1028, 'Laboratório de Engenharia de Software', 4, '14:50', 'Quarta', 101),
+(1029, 'Inglês 1', 4, '14:50', 'Sexta', 101),
+(1030, 'Inglês 2', 2, '14:50', 'Terça', 101),
+(1031, 'Inglês 3', 2, '13:00', 'Sexta', 101),
+(1032, 'Inglês 4', 2, '13:00', 'Segunda', 101),
+(1033, 'Inglês 5', 2, '13:00', 'Terça', 101),
+(1034, 'Inglês 6', 2, '13:00', 'Quinta', 101),
+(1035, 'Sociedade e Tecnologia', 2, '14:50', 'Terça', 101),
+(1036, 'Interação Humano Computador', 4, '14:50', 'Terça', 101),
+(1037, 'Estatística Aplicada', 4, '14:50', 'Quarta', 101),
+(1038, 'Laboratório de Redes de Computadores', 4, '14:50', 'Sexta', 101),
+(1039, 'Inteligência Artificial', 4, '13:00', 'Quarta', 101),
+(1040, 'Programação para Mainframes', 4, '14:50', 'Quarta', 101)
+
+INSERT INTO conteudo VALUES
+(100001, 'Stored Procedures', 1001),
+(100002, 'Union e Views', 1001),
+(100003, 'Projeto Maven', 1001),
+(100004, 'Dynamic Queries', 1001),
+(100005, 'User Defined Functions', 1001),
+(100006, 'Diagrama de Entidade e Relacionamento', 1002),
+(100007, 'Modelagem de Entidade e Relacionamento', 1002),
+(100008, 'Normas Formais', 1002),
+(100009, 'Fundamentos SQL', 1002),
+(100010, 'Criando o Banco SQL', 1002),
+(100011, 'Estrutura Sequencial', 1003),
+(100012, 'Estrutura de Decisão', 1003),
+(100013, 'Estrutura de Repetição', 1003),
+(100014, 'Programação Estruturada', 1003),
+(100015, 'Fluxograma e Teste de mesa', 1003)
+
+
+
+
+'
+
+SELECT d.nome, d.qtd_aulas, CONVERT(varchar, d.horario, 8) AS horario, d.dia
+FROM disciplina d, curso c
+WHERE d.curso_codigo = c.codigo
+ORDER BY nome ASC

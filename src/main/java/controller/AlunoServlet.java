@@ -12,7 +12,9 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Aluno;
+import model.Curso;
 import persistence.AlunoDao;
+import persistence.CursoDao;
 import persistence.GenericDao;
 
 @WebServlet("/aluno")
@@ -25,9 +27,23 @@ public class AlunoServlet extends HttpServlet {
     }
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		response.getWriter().append("Served at: ").append(request.getContextPath());
+		String erro = "";
+		List<Curso> cursos = new ArrayList<>();
+		
+		try {
+			cursos = listarCursos();
+		} catch (ClassNotFoundException | SQLException e){
+			erro = e.getMessage();
+		} finally {
+			request.setAttribute("erro", erro);
+			request.setAttribute("cursos", cursos);
+		}
+		
+		RequestDispatcher rd = request.getRequestDispatcher("aluno.jsp");
+		rd.forward(request, response);
 	}
+	
+
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		//entrada
 				String cmd = request.getParameter("botao");
@@ -45,18 +61,33 @@ public class AlunoServlet extends HttpServlet {
 				String anoIngresso = request.getParameter("anoIngresso");
 				String semestreIngresso = request.getParameter("semestreIngresso");
 				String semestreGraduacao = request.getParameter("semestreGraduacao");
+				String curso = request.getParameter("curso");
+				
 				
 				//saida
 				String saida="";
 				String erro="";
 				Aluno a = new Aluno();
 				List<Aluno> alunos = new ArrayList<>();
+				List<Curso> cursos = new ArrayList<>();
+				Curso cr = new Curso();
 				
+			try {
+				cursos = listarCursos();
 				if(!cmd.contains("Listar")) {
+					cr.setCodigo(Integer.parseInt(curso));
+					try {
+						cr = chamarCurso(cr);
+					} catch (SQLException | ClassNotFoundException e) {
+						erro = e.getMessage();
+					}
+					a.setCurso(cr);
+					
 					a.setCpf(cpf);
 				}
 				if(cmd.contains("Cadastrar") || cmd.contains("Alterar")) {
 					a.setCpf(cpf);
+					a.setRa(ra);
 					a.setNome(nome);
 					a.setNomeSocial(nomeSocial);
 					a.setDataNasc(dataNasc);
@@ -69,8 +100,16 @@ public class AlunoServlet extends HttpServlet {
 					a.setAnoIngresso(anoIngresso);
 					a.setSemestreIngresso(semestreIngresso);
 					a.setSemestreGraduacao(semestreGraduacao);
+					cr.setCodigo(Integer.parseInt(curso));
+					try {
+						cr = chamarCurso(cr);
+					} catch (SQLException | ClassNotFoundException e) {
+						erro = e.getMessage();
+					}
+					a.setCurso(cr);
+					
 				}
-				try {
+				
 					if(cmd.contains("Cadastrar")) {
 						saida = cadastrarAluno(a);
 						a = null;
@@ -85,6 +124,7 @@ public class AlunoServlet extends HttpServlet {
 					}
 					if(cmd.contains("Buscar")) {
 						a = buscarAluno(a);
+						cr = a.getCurso();
 					}
 					if(cmd.contains("Listar")) {
 						alunos = listarAlunos();
@@ -97,10 +137,26 @@ public class AlunoServlet extends HttpServlet {
 					request.setAttribute("erro", erro);
 					request.setAttribute("aluno", a);
 					request.setAttribute("alunos", alunos);
+					request.setAttribute("curso", cr);
+					request.setAttribute("cursos", cursos);
 					
 					RequestDispatcher rd = request.getRequestDispatcher("aluno.jsp");
 					rd.forward(request, response);
 				}
+			
+	}
+
+	private Curso chamarCurso(Curso cur) throws ClassNotFoundException, SQLException {
+		GenericDao gDao = new GenericDao();
+		CursoDao cDao = new CursoDao(gDao);
+		cur = cDao.consultar(cur);
+		return cur;
+	}
+	
+	private List<Curso> listarCursos() throws ClassNotFoundException, SQLException {
+		GenericDao gDao = new GenericDao();
+		CursoDao cDao = new CursoDao(gDao);
+		return cDao.listar();
 	}
 
 	private String cadastrarAluno(Aluno a) throws ClassNotFoundException, SQLException {
@@ -117,9 +173,11 @@ public class AlunoServlet extends HttpServlet {
 		return saida;
 	}
 
-	private String excluirAluno(Aluno a) {
-		// TODO Auto-generated method stub
-		return null;
+	private String excluirAluno(Aluno a) throws ClassNotFoundException, SQLException {
+		GenericDao gDao = new GenericDao();
+		AlunoDao aDao = new AlunoDao(gDao);
+		String saida = aDao.iud("D", a);
+		return saida;
 	}
 
 	private Aluno buscarAluno(Aluno a) throws ClassNotFoundException, SQLException {
@@ -134,7 +192,6 @@ public class AlunoServlet extends HttpServlet {
 		List<Aluno> alunos = new ArrayList<>();
 		AlunoDao aDao = new AlunoDao(gDao);
 		alunos = aDao.listar();
-		System.out.println(alunos.get(0));
 		return alunos;
 	}
 }

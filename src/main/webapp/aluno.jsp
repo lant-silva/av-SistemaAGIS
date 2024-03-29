@@ -1,6 +1,6 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
-    pageEncoding="ISO-8859-1"%>
+	pageEncoding="ISO-8859-1"%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -15,7 +15,7 @@
 </header>
 </head>
 <body>
-<div>
+	<div>
 		<div align="center" class="container">
 			<form action="aluno" method="post">
 				<table>
@@ -30,8 +30,8 @@
 					<tr />
 					<tr>
 						<td colspan="3"><input class="input_data" type="number"
-							id="ra" name="ra" placeholder="RA"
-							disabled value='<c:out value="${aluno.ra}"></c:out>'>
+							id="ra" name="ra" placeholder="RA" disabled
+							value='<c:out value="${aluno.ra}"></c:out>'>
 						<td />
 					<tr />
 					<tr>
@@ -41,25 +41,26 @@
 					</tr>
 					<tr>
 						<td colspan="4"><input class="input_data" type="text"
-							maxlength="100" id="nomeSocial" name="nomeSocial" placeholder="Nome Social"
-							value='<c:out value="${aluno.nomeSocial}"></c:out>'>
-						</td>
+							maxlength="100" id="nomeSocial" name="nomeSocial"
+							placeholder="Nome Social"
+							value='<c:out value="${aluno.nomeSocial}"></c:out>'></td>
 					</tr>
 					<tr>
 						<td colspan="4"><input class="input_data" type="date"
 							id="dataNasc" name="dataNasc"
-							value='<c:out value="${aluno.dataNasc}"></c:out>'>
-							</td>
+							value='<c:out value="${aluno.dataNasc}"></c:out>'></td>
 					</tr>
 					<tr>
 						<td colspan="4"><input class="input_data" type="text"
 							maxlength="200" id="emailPessoal" name="emailPessoal"
-							placeholder="Email Pessoal" value='<c:out value="${aluno.emailPessoal}"></c:out>'></td>
+							placeholder="Email Pessoal"
+							value='<c:out value="${aluno.emailPessoal}"></c:out>'></td>
 					</tr>
 					<tr>
 						<td colspan="4"><input class="input_data" type="text"
 							maxlength="200" id="emailCorporativo" name="emailCorporativo"
-							placeholder="Email Corporativo" value='<c:out value="${aluno.emailCorporativo}"></c:out>'></td>
+							placeholder="Email Corporativo"
+							value='<c:out value="${aluno.emailCorporativo}"></c:out>'></td>
 					</tr>
 					<tr>
 						<td colspan="4"><input class="input_data" type="date"
@@ -69,53 +70,71 @@
 					</tr>
 					<tr>
 						<td colspan="4"><input class="input_data" type="text"
-							maxlength="100" id="instituicaoSegundoGrau" name="instituicaoSegundoGrau" 
+							maxlength="100" id="instituicaoSegundoGrau"
+							name="instituicaoSegundoGrau"
 							placeholder="Instituição Segundo Grau"
 							value='<c:out value="${aluno.instituicaoSegundoGrau}"></c:out>'>
 						</td>
 					</tr>
 					<tr>
 						<td colspan="4"><input class="input_data" type="number"
-							min="0" max="1000" id="pontuacaoVestibular" name="pontuacaoVestibular"
-							placeholder="Pontuação no Vestibular" 
+							min="0" max="1000" id="pontuacaoVestibular"
+							name="pontuacaoVestibular" placeholder="Pontuação no Vestibular"
 							value='<c:out value="${aluno.pontuacaoVestibular}"></c:out>'>
 						</td>
 					</tr>
 					<tr>
 						<td colspan="4"><input class="input_data" type="number"
-							min="0" max="999999999" id="posicaoVestibular" name="posicaoVestibular"
-							placeholder="Pontuação no Vestibular" 
+							min="0" max="999999999" id="posicaoVestibular"
+							name="posicaoVestibular" placeholder="Pontuação no Vestibular"
 							value='<c:out value="${aluno.posicaoVestibular}"></c:out>'>
 						</td>
 					</tr>
 					<tr>
 						<td colspan="4"><input class="input_data" type="number"
-							min="2000" max="2025" id="anoIngresso" name="anoIngresso" 
+							min="2000" max="2025" id="anoIngresso" name="anoIngresso"
 							placeholder="Ano de Ingresso"
-							value='<c:out value="${aluno.anoIngresso}"></c:out>'>
-						</td>
+							value='<c:out value="${aluno.anoIngresso}"></c:out>'></td>
 					</tr>
 					<tr>
 						<td colspan="4"><input class="input_data" type="number"
-							min="1" max="2" id="semestreIngresso" name="semestreIngresso" 
+							min="1" max="2" id="semestreIngresso" name="semestreIngresso"
 							placeholder="Semestre de Ingresso"
 							value='<c:out value="${aluno.semestreIngresso}"></c:out>'>
 						</td>
 					</tr>
 					<tr>
 						<td colspan="4"><input class="input_data" type="number"
-							min="1" maxlength="6" id="semestreGraduacao" name="semestreGraduacao" 
-							placeholder="Semestre de Graduação"
+							min="1" maxlength="6" id="semestreGraduacao"
+							name="semestreGraduacao" placeholder="Semestre de Graduação"
 							value='<c:out value="${aluno.semestreGraduacao}"></c:out>'>
 						</td>
 					</tr>
 					<tr>
 						<td colspan="4"><input class="input_data" type="text"
-							maxlength="6" id="anoLimite" name="anoLimite" 
-							placeholder="Ano/Semestre Limite"
-							disabled value='<c:out value="${aluno.anoLimite}"></c:out>'>
-						</td>
+							maxlength="6" id="anoLimite" name="anoLimite"
+							placeholder="Ano/Semestre Limite" disabled
+							value='<c:out value="${aluno.anoLimite}"></c:out>'></td>
 					</tr>
+					<tr>
+						<td colspan="3"><select class="input_data" id="curso"
+							name="curso">
+								<option value="0">Escolha um curso</option>
+								<c:forEach var="c" items="${cursos }">
+									<c:if test="${(empty curso) || (c.codigo ne aluno.curso.codigo)}">
+										<option value="${c.codigo }">
+											<c:out value="${c.nome }"/>
+										</option>
+									</c:if>
+									<c:if test="${c.codigo eq aluno.curso.codigo }">
+										<option value="${c.codigo }" selected="selected">
+											<c:out value="${c.nome }"/>
+										</option>
+									</c:if>
+								</c:forEach>
+						</select>
+						<td />
+					<tr />
 					<tr>
 						<td><input type="submit" id="botao" name="botao"
 							value="Cadastrar"></td>
@@ -145,8 +164,8 @@
 				<b><c:out value="${erro }" /></b>
 			</H2>
 		</c:if>
-	</div>	
-	
+	</div>
+
 	<!-- Botão Listar Alunos -->
 	<div align="center">
 		<c:if test="${not empty alunos}">
@@ -168,6 +187,7 @@
 						<th>Semestre de Ingresso</th>
 						<th>Semestre de Graduação</th>
 						<th>Semestre Limite</th>
+						<th>Curso</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -188,6 +208,7 @@
 							<td><c:out value="${a.semestreIngresso}" /></td>
 							<td><c:out value="${a.semestreGraduacao}" /></td>
 							<td><c:out value="${a.anoLimite}" /></td>
+							<td><c:out value="${a.curso.sigla}" /></td>
 						</tr>
 					</c:forEach>
 				</tbody>

@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -37,11 +38,15 @@ public class DisciplinaServlet extends HttpServlet {
 			request.setAttribute("erro", erro);
 			request.setAttribute("cursos", cursos);
 		}
+		
+		RequestDispatcher rd = request.getRequestDispatcher("disciplina.jsp");
+		rd.forward(request, response);
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		doGet(request, response);
+		//entrada
+		String cmd = request.getParameter("botao");
+		
 	}
 
 }

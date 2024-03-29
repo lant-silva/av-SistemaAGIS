@@ -10,9 +10,9 @@
 	<nav id="menu">
 		<ul>
 			<li class="menu-item"><a href="viewchoose.jsp">Sair</a>
-			<li class="menu-item"><a href="aluno.jsp">Aluno</a>
-			<li class="menu-item"><a href="curso.jsp">Curso</a>
-			<li class="menu-item"><a href="disciplina.jsp">Disciplina</a>
+			<li class="menu-item"><a href="${pageContext.request.contextPath}/aluno">Aluno</a>
+			<li class="menu-item"><a href="${pageContext.request.contextPath}/curso">Curso</a>
+			<li class="menu-item"><a href="${pageContext.request.contextPath }/disciplina">Disciplina</a>
 		</ul>
 	</nav>
 </body>

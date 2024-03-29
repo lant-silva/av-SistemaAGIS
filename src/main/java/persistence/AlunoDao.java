@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import model.Aluno;
+import model.Curso;
 
 public class AlunoDao implements ICrud<Aluno>, IIud<Aluno>{
 	private GenericDao gDao;
@@ -21,7 +22,7 @@ public class AlunoDao implements ICrud<Aluno>, IIud<Aluno>{
 	@Override
 	public String iud(String acao, Aluno a) throws SQLException, ClassNotFoundException {
 		Connection c = gDao.getConnection();
-		String sql = "CALL sp_iudaluno (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		String sql = "CALL sp_iudaluno (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 		CallableStatement cs = c.prepareCall(sql);
 		cs.setString(1, acao);
 		cs.setString(2, a.getCpf());
@@ -39,9 +40,10 @@ public class AlunoDao implements ICrud<Aluno>, IIud<Aluno>{
 		cs.setString(14, a.getSemestreIngresso());
 		cs.setString(15, a.getSemestreGraduacao());
 		cs.setString(16, a.getAnoLimite());
-		cs.registerOutParameter(17, Types.VARCHAR);
+		cs.setInt(17, a.getCurso().getCodigo());
+		cs.registerOutParameter(18, Types.VARCHAR);
 		cs.execute();
-		String saida = cs.getString(17);
+		String saida = cs.getString(18);
 		cs.close();
 		c.close();
 		return saida;
@@ -50,7 +52,7 @@ public class AlunoDao implements ICrud<Aluno>, IIud<Aluno>{
 	@Override
 	public Aluno consultar(Aluno a) throws SQLException, ClassNotFoundException {
 		Connection c = gDao.getConnection();
-		String sql = "SELECT * FROM aluno WHERE cpf = ?";
+		String sql = "SELECT * FROM v_alunos WHERE cpf = ?";
 		PreparedStatement ps = c.prepareStatement(sql);
 		ps.setString(1, a.getCpf());
 		ResultSet rs = ps.executeQuery();
@@ -70,6 +72,9 @@ public class AlunoDao implements ICrud<Aluno>, IIud<Aluno>{
 			a.setSemestreIngresso(rs.getString("semestre_ingresso"));
 			a.setSemestreGraduacao(rs.getString("semestre_graduacao"));
 			a.setAnoLimite(rs.getString("ano_limite"));
+			Curso cur = new Curso();
+			cur.setCodigo(rs.getInt("curso_codigo"));
+			a.setCurso(cur);
 		}
 		rs.close();
 		ps.close();
@@ -81,7 +86,7 @@ public class AlunoDao implements ICrud<Aluno>, IIud<Aluno>{
 	public List<Aluno> listar() throws SQLException, ClassNotFoundException {
 		List<Aluno> alunos = new ArrayList<>();
 		Connection c = gDao.getConnection();
-		String sql = "SELECT * FROM aluno";
+		String sql = "SELECT * FROM v_alunos";
 		PreparedStatement ps = c.prepareStatement(sql);
 		ResultSet rs = ps.executeQuery();
 		while(rs.next()) {
@@ -101,6 +106,10 @@ public class AlunoDao implements ICrud<Aluno>, IIud<Aluno>{
 			a.setSemestreIngresso(rs.getString("semestre_ingresso"));
 			a.setSemestreGraduacao(rs.getString("semestre_graduacao"));
 			a.setAnoLimite(rs.getString("ano_limite"));
+			Curso cur = new Curso();
+			cur.setCodigo(rs.getInt("curso_codigo"));
+			cur.setSigla(rs.getString("curso_sigla"));
+			a.setCurso(cur);
 			alunos.add(a);
 		}
 		rs.close();

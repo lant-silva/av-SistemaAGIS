@@ -21,6 +21,18 @@
 		<form action="disciplina" method="post">
 			<table>
 				<tr>
+					<td colspan="3">
+						<select class="input_data" id="curso" name="curso">
+							<option value="0">Escolha um curso</option>
+							<c:forEach var="c" items="${cursos }">
+								<option value="${c.codigo }">
+									<c:out value="${c.nome }"/>
+								</option>
+							</c:forEach>
+						</select>
+					<td />
+				<tr />
+				<tr>
 					<td colspan="3"><input class="input_data" type="number"
 						min="0" id="codigo" name="codigo" placeholder="Código Disciplina"
 						value='<c:out value="${disciplina.codigo}"></c:out>'>
@@ -30,9 +42,27 @@
 					<td />
 				<tr />
 				<tr>
+					<td colspan="3"><input class="input_data" type="text"
+						maxlength="100" id="nome" name="nome" placeholder="Nome Disciplina"
+						value='<c:out value="${disciplina.nome}"></c:out>'>
+					<td />
+				<tr />
+				<tr>
+					<td colspan="3"><input class="input_data" type="number"
+						min="0" id="codigo" name="codigo" placeholder="Duração da aula"
+						value='<c:out value="${disciplina.qtdHoras}"></c:out>'>
+					<td />
+				<tr />
+				<tr>
 					<td colspan="3"><input class="input_data" type="number"
 						min="0" id="codigo" name="codigo" placeholder="Código Disciplina"
-						value='<c:out value="${disciplina.codigo}"></c:out>'>
+						value='<c:out value="${disciplina.horario}"></c:out>'>
+					<td />
+				<tr />
+				<tr>
+					<td colspan="3"><input class="input_data" type="number"
+						min="0" id="codigo" name="codigo" placeholder="Dia da semana"
+						value='<c:out value="${disciplina.dia}"></c:out>'>
 					<td />
 				<tr />
 			</table>

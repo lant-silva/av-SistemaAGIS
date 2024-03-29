@@ -1,10 +1,19 @@
 package model;
 
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Disciplina {
 	int codigo;
 	String nome;
-	int qtdHoras;
-	List<Conteudo> conteudo;
+	int qtdAulas;
+	String horario;
+	String diaSemana;
+	int cursoCodigo;
 }

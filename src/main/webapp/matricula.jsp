@@ -20,13 +20,22 @@
 			<form action="matricula" method="post">
 				<tr>
 					<td colspan="3"><input class="input_data" type="number"
-						min="0" max="99999999999" id="cpf" name="cpf" placeholder="CPF"
+						min="0" max="99999999999" id="codigo" name="codigo" placeholder="Código Matricula"
 						value=''>
 					<td />
 					<td><input type="submit" id="botao" name="botao"
 						value="Buscar">
 					<td />
 				</tr>
+				<tr>
+					<td colspan="3"><input class="input_data" type="number"
+						min="0" max="99999999999" id="cpf" name="cpf" placeholder="CPF"
+						value=''>
+					<td />
+				</tr>
+				<c:forEach var="d" value="${disciplinas }">
+				
+				</c:forEach>
 			</form>
 		</div>
 	</div>
