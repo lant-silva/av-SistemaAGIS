@@ -15,6 +15,6 @@
 </head>
 <body>
 
-
 </body>
+	<footer><b>Desenvolvido por Davi De Queiroz e Luiz Antonio</b></footer>
 </html>

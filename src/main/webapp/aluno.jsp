@@ -86,7 +86,7 @@
 					<tr>
 						<td colspan="4"><input class="input_data" type="number"
 							min="0" max="999999999" id="posicaoVestibular"
-							name="posicaoVestibular" placeholder="Pontuação no Vestibular"
+							name="posicaoVestibular" placeholder="Posição no Vestibular"
 							value='<c:out value="${aluno.posicaoVestibular}"></c:out>'>
 						</td>
 					</tr>
