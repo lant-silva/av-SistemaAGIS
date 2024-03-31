@@ -60,7 +60,7 @@ public class DisciplinaDao implements ICrud<Disciplina>, IIud<Disciplina>, IDisc
 	}
 
 	@Override
-	public List<Disciplina> listar(int codig) throws SQLException, ClassNotFoundException {
+	public List<Disciplina> listar() throws SQLException, ClassNotFoundException {
 		List<Disciplina> disciplinas = new ArrayList<>();
 		Connection c = gDao.getConnection();
 		String sql = "SELECT * FROM v_disciplinas";

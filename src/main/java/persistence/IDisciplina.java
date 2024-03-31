@@ -6,7 +6,6 @@ import java.util.List;
 import model.MatriculaDisciplinas;
 
 public interface IDisciplina {
-	public List<Disciplina> 
 	public void inserirEmMatricula(int codigoMatricula, int codigoDisciplina, String situacao) throws SQLException, ClassNotFoundException;
 	public List<MatriculaDisciplinas> listarSituacao(int codigoMatricula, int codigoDisciplina) throws SQLException, ClassNotFoundException;
 }
