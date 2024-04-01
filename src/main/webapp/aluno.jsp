@@ -50,6 +50,8 @@
 							id="dataNasc" name="dataNasc"
 							value='<c:out value="${aluno.dataNasc}"></c:out>'></td>
 					</tr>
+					
+					
 					<tr>
 						<td colspan="4"><input class="input_data" type="text"
 							maxlength="200" id="emailPessoal" name="emailPessoal"

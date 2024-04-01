@@ -23,8 +23,8 @@ poderá realizar a matricula
 	</br>
 	</br>
 	<div class="menu">
-		<li><a href="secretaria.jsp">Secretaria</a></li>
-		<li><a href="matricula.jsp">Matrícula</a></li>
+		<li><a href="secretaria.jsp">Visão Secretaria</a></li>
+		<li><a href="matricula.jsp">Visão Aluno</a></li>
 	</div>
 </div>
 </body>
