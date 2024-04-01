@@ -64,9 +64,8 @@ FOREIGN KEY(codigo_disciplina) REFERENCES disciplina(codigo)
 )
 
 CREATE TABLE matricula(
-codigo					INT				NOT NULL,
-aluno_cpf				CHAR(11)		NOT NULL,
-data_matricula			DATE			NOT NULL
+codigo					INT				NOT NULL	IDENTITY(1000001, 1),
+aluno_cpf				CHAR(11)		NOT NULL
 PRIMARY KEY(codigo)
 FOREIGN KEY(aluno_cpf) REFERENCES aluno(cpf)
 )
@@ -232,6 +231,7 @@ CREATE PROCEDURE sp_iudaluno(@acao CHAR(1),
 AS
 DECLARE @cpfvalido BIT = 0
 DECLARE @idadevalida BIT = 0
+DECLARE @codigomatricula INT = 0
 
 -- Validar CPF
 
@@ -285,7 +285,7 @@ BEGIN
 	 @anolimite,
 	 @cursocodigo)
 
-	 EXEC sp_matricula @cpf
+	 EXEC sp_gerarmatricula @cpf, @codigomatricula
 	SET @saida = 'Aluno inserido'
 END
 ELSE 
@@ -428,10 +428,43 @@ END
 -- Procedure IUD Matrícula 
 ------------------------------------------------------------------------
 
--- Início da procedure
-CREATE PROCEDURE sp_inserirmatricula(
--- Fim da procedure
+DECLARE @saida VARCHAR(200)
+EXEC sp_inserirmatricula '52169314814', 1000001, 1001, @saida OUTPUT
+PRINT @saida
 
+-- Início da procedure
+CREATE PROCEDURE sp_inserirmatricula(@cpf CHAR(11), @codigomatricula INT, @codigodisciplina INT, @saida VARCHAR(200) OUTPUT)
+AS
+DECLARE @conflito BIT,
+		@qtdaula INT,
+		@horario TIME,
+		@diasemana VARCHAR(50)
+
+SELECT @qtdaula = d.qtd_aulas, @horario = d.horario, @diasemana = d.dia
+FROM disciplina d, matricula_disciplina md, matricula m
+WHERE d.codigo = md.codigo_disciplina
+	AND md.codigo_matricula = m.codigo
+
+SET @codigomatricula = dbo.fn_codigomatricula()
+
+EXEC sp_verificarconflitohorario @codigomatricula, @horario, @qtdaula, @diasemana, @conflito OUTPUT
+
+IF(@conflito = 0)
+BEGIN
+	UPDATE matricula_disciplina 
+	SET situacao = 'Em curso'
+	WHERE codigo_matricula = @codigomatricula 
+		AND codigo_disciplina = @codigodisciplina
+END
+ELSE
+BEGIN
+	RAISERROR('Matricula cancelada: Existe conflito de horários', 16, 1)
+	RETURN
+END
+-- Gerar um novo código de matricula
+-- Fim da procedure
+/* 
+Desnecessario: usar IDENTITY na matricula
 CREATE FUNCTION fn_codigomatricula()
 RETURNS INT
 AS
@@ -447,23 +480,30 @@ BEGIN
 	END
 	RETURN @cod
 END
-
+*/
 -- Procedimento Gerar matricula de um aluno
 -----------------------------------------------------------------------------------
 
+DECLARE @codigomatricula INT
+EXEC sp_gerarmatricula '52169314814', @codigomatricula OUTPUT
+PRINT @codigomatricula
+
+
 -- Início da procedure
-CREATE PROCEDURE sp_matricula(@cpf CHAR(11), @codigomatricula INT OUTPUT)
+CREATE PROCEDURE sp_gerarmatricula(@cpf CHAR(11))
 AS
 BEGIN
-	SET @codigomatricula = dbo.fn_codigomatricula()
+	DECLARE @codigomatricula INT
 
 	INSERT INTO matricula VALUES
 	(@codigomatricula, @cpf)
 	
+	SELECT @codigomatricula = codigo FROM matricula WHERE aluno_cpf = @cpf
+
 	INSERT INTO matricula_disciplina (codigo_matricula, codigo_disciplina, situacao)
 	SELECT * FROM dbo.fn_matriculainicial(@codigomatricula)
 END
-
+-- Fim da procedure
 
 -- Inicio da função
 CREATE FUNCTION fn_matriculainicial(@codigomatricula INT)
@@ -482,8 +522,8 @@ BEGIN
 		AND m.codigo = @codigomatricula
 		RETURN
 END
+
 -- Fim da função
--- Fim da procedure
 
 -- Procedure de verificação de conflito de horarios em uma matricula
 ------------------------------------------------------------------------
@@ -525,11 +565,6 @@ SELECT * FROM matricula_disciplina WHERE codigo_matricula = 1000001
 UPDATE matricula_disciplina
 SET situacao = 'Em curso'
 WHERE codigo_disciplina = 1001
-
--- Procedure Inserção de uma nova matricula
------------------------------------------------------------------------
-
-CREATE PROCEDURE sp_inserirmatricula()
 
 -- Procedure Conteudo
 -------------------------------------------------------------------------

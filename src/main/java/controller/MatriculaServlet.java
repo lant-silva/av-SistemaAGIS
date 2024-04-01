@@ -71,7 +71,7 @@ public class MatriculaServlet extends HttpServlet {
 				matriculaDisciplinas = listarDisciplinas(cpf);
 			}
 			if(cmd.contains("Confirmar Matricula")) {
-				inserirMatricula(disciplinasSelecionadas);
+				inserirMatricula(disciplinasSelecionadas, cpf);
 				saida = "Matricula finalizada";
 			}
 		} catch (SQLException | ClassNotFoundException e) {		
@@ -85,20 +85,37 @@ public class MatriculaServlet extends HttpServlet {
 			rd.forward(request, response);
 		}
 	}
-
-	private void inserirMatricula(String[] disciplinasSelecionadas) throws ClassNotFoundException, SQLException {
+	
+	/**
+	 * Insere, em uma nova matrícula, as disciplinas selecionadas na página de matrícula
+	 * 
+	 * @param disciplinasSelecionadas
+	 * @param cpf
+	 * @return String saída, indicando o resultado determinado da query 
+	 * @throws ClassNotFoundException Caso nenhuma classe seja encontrada
+	 * @throws SQLException Caso haja algum erro nos parâmetros inseridos ao executar a query SQL
+	 */
+	private String inserirMatricula(String[] disciplinasSelecionadas, String cpf) throws ClassNotFoundException, SQLException {
 		GenericDao gDao = new GenericDao();
 		MatriculaDisciplinaDao mdDao = new MatriculaDisciplinaDao(gDao);
-		DisciplinaDao dDao = new DisciplinaDao(gDao);
-		Disciplina d;
+		String codigoMatricula = mdDao.gerarMatricula(cpf);
+		String saida = null;
 		for(String str : disciplinasSelecionadas) {
-			d = new Disciplina();
-			d.setCodigo(Integer.parseInt(str));
-			d = dDao.consultar(d);
-			mdDao.inserirMatricula(disciplinasSelecionadas);
+			saida = mdDao.inserirMatricula(Integer.parseInt(codigoMatricula), Integer.parseInt(str), cpf);
 		}
+		return saida;
 	}
-
+	
+	/**
+	 * Lista todas as disciplinas disponíveis para um aluno matricular. A função assume que um aluno já possui uma matrícula, ver {@link cadastrarAluno}
+	 * 
+	 * 
+	 * @param alunoCpf
+	 * @return
+	 * @throws ClassNotFoundException
+	 * @throws SQLException Caso haja algum erro nos parâmetros inseridos ao executar a query SQL
+	 * @see cadastrarAluno
+	 */
 	private List<MatriculaDisciplinas> listarDisciplinas(String alunoCpf) throws ClassNotFoundException, SQLException {
 		GenericDao gDao = new GenericDao();
 		MatriculaDisciplinaDao mdDao = new MatriculaDisciplinaDao(gDao);

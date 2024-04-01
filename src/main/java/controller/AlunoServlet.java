@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
@@ -13,10 +14,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Aluno;
 import model.Curso;
+import model.Telefone;
 import persistence.AlunoDao;
 import persistence.CursoDao;
 import persistence.GenericDao;
-import persistence.MatriculaDisciplinaDao;
 
 @WebServlet("/aluno")
 public class AlunoServlet extends HttpServlet {
@@ -47,6 +48,8 @@ public class AlunoServlet extends HttpServlet {
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		//entrada
+			Map<String,String[]> parameterMap = request.getParameterMap();
+		
 				String cmd = request.getParameter("botao");
 				String ra = request.getParameter("ra");
 				String cpf = request.getParameter("cpf");
@@ -63,7 +66,12 @@ public class AlunoServlet extends HttpServlet {
 				String semestreIngresso = request.getParameter("semestreIngresso");
 				String semestreGraduacao = request.getParameter("semestreGraduacao");
 				String curso = request.getParameter("curso");
-				
+				String[] telefones = request.getParameterValues("listaTelefones");
+				if(telefones != null) {
+					for(String str : telefones) {
+						System.out.println(str);
+					}
+				}
 				
 				//saida
 				String saida="";
@@ -71,6 +79,7 @@ public class AlunoServlet extends HttpServlet {
 				Aluno a = new Aluno();
 				List<Aluno> alunos = new ArrayList<>();
 				List<Curso> cursos = new ArrayList<>();
+				List<Telefone> telefoness = new ArrayList<>();
 				Curso cr = new Curso();
 				
 			try {
@@ -159,6 +168,13 @@ public class AlunoServlet extends HttpServlet {
 		return cDao.listar();
 	}
 
+	/**
+	 * 
+	 * @param a
+	 * @return
+	 * @throws ClassNotFoundException
+	 * @throws SQLException
+	 */
 	private String cadastrarAluno(Aluno a) throws ClassNotFoundException, SQLException {
 		GenericDao gDao = new GenericDao();
 		AlunoDao aDao = new AlunoDao(gDao);

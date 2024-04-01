@@ -84,47 +84,7 @@
 		</div>
 	</form>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-	event.preventDefault();
-    var listaDisciplinas = document.getElementById('listaDisciplinas');
-    var botaoConfirmar = document.querySelector('input[value="Confirmar Matricula"]');
-    inicializar();
 
-function verificaPeriodoMatricula() {
-    var dataAtual = new Date();
-    var mes = dataAtual.getMonth(); 
-
-
-    if (mes === 0 || mes === 6) {
-        var dia = dataAtual.getDate(); // Obtém o dia do mês atual
-
-        // Verifica se o dia do mês está entre 15 e 21
-        if (dia >= 15 && dia <= 21) {
-            return true; // A data atual está dentro do período de matrícula
-        }
-    }
-
-    return false;
-}
-
-function desabilitarMatricula() {
-    // Desabilita as checkboxes na tabela de disciplinas
-    var checkboxes = listaDisciplinas.querySelectorAll('input[type="checkbox"]');
-    	checkboxes.forEach(function(checkbox) {
-        checkbox.disabled = true;
-    });
-
-    var botaoConfirmar = document.querySelector('input[value="Confirmar Matricula"]');
-    botaoConfirmar.disabled = true;
-    botaoConfirmar.hidden = true;
-}
-
-function inicializar() {
-    if (!verificaPeriodoMatricula()) {
-        desabilitarMatricula();
-    }
-}
-});
 
 </script>
 </body>
