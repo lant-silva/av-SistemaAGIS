@@ -12,7 +12,7 @@ import java.util.List;
 import model.Disciplina;
 import model.MatriculaDisciplinas;
 
-public class DisciplinaDao implements ICrud<Disciplina>, IIud<Disciplina>, IDisciplina{
+public class DisciplinaDao implements ICrud<Disciplina>, IIud<Disciplina>{
 	private GenericDao gDao;
 	
 	public DisciplinaDao(GenericDao gDao) {
@@ -80,42 +80,5 @@ public class DisciplinaDao implements ICrud<Disciplina>, IIud<Disciplina>, IDisc
 		ps.close();
 		c.close();
 		return disciplinas;
-	}
-	
-	@Override
-	public void inserirEmMatricula(int codigoMatricula, int codigoDisciplina, String situacao)
-			throws SQLException, ClassNotFoundException {
-		Connection c = gDao.getConnection();
-		String sql = "INSERT INTO matricula_disciplina VALUES (codigo_matricula = ?, codigo_disciplina = ?, sitaucao = ?) ";
-		PreparedStatement ps = c.prepareStatement(sql);
-		ps.setInt(1, codigoMatricula);
-		ps.setInt(2, codigoDisciplina);
-		ps.setString(3, situacao);
-		ps.execute();
-		ps.close();
-		c.close();
-	}
-
-	@Override
-	public List<MatriculaDisciplinas> listarSituacao(int codigoMatricula, int CodigoDisciplina)
-			throws SQLException, ClassNotFoundException {
-		List<MatriculaDisciplinas> ms = new ArrayList<>();
-		Connection c = gDao.getConnection();
-		String sql = "SELECT * FROM matricula_disciplina WHERE codigo_disciplina = ? AND codigo_matricula = ?";
-		PreparedStatement ps = c.prepareStatement(sql);
-		ps.setInt(1, CodigoDisciplina);
-		ps.setInt(2, codigoMatricula);
-		ResultSet rs = ps.executeQuery();
-		while(rs.next()) {
-			MatriculaDisciplinas m = new MatriculaDisciplinas();
-			m.setCodigoDisciplina(rs.getInt("codigo_disciplina"));
-			m.setCodigoMatricula(rs.getInt("codigo_matricula"));
-			m.setSituacao(rs.getString("situacao"));
-			ms.add(m);
-		}
-		rs.close();
-		ps.close();
-		c.close();
-		return ms;
 	}
 }

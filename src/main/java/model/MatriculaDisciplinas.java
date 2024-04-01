@@ -10,8 +10,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MatriculaDisciplinas {
-	int codigoMatricula;
-	int codigoDisciplina;
-	String situacao;
 	Disciplina disciplina;
+	int codigoMatricula;
+	String situacao;
 }

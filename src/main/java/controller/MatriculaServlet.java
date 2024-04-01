@@ -11,26 +11,20 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Disciplina;
+import model.Matricula;
+import model.MatriculaDisciplinas;
 import persistence.DisciplinaDao;
 import persistence.GenericDao;
+import persistence.MatriculaDisciplinaDao;
 
-/**
- * Servlet implementation class MatriculaServlet
- */
 public class MatriculaServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
     public MatriculaServlet() {
         super();
         // TODO Auto-generated constructor stub
     }
 
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String erro = "";
 		List<Disciplina> disciplinas = new ArrayList<>();
@@ -49,17 +43,60 @@ public class MatriculaServlet extends HttpServlet {
 			request.setAttribute("disciplinas", disciplinas);
 		}
 		
-		RequestDispatcher rd = request.getRequestDispatcher("disciplina.jsp");
+		RequestDispatcher rd = request.getRequestDispatcher("matricula.jsp");
 		rd.forward(request, response);
 		
 	}
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		doGet(request, response);
+		// Entrada
+		String cmd = request.getParameter("botao");
+		String cpf = request.getParameter("cpf");
+		String[] disciplinasSelecionadas = request.getParameterValues("disciplinasSelecionadas");
+		if(disciplinasSelecionadas != null) {
+			for(String str : disciplinasSelecionadas) {			
+				System.out.println(str);
+			}
+		}
+		
+		// Saída
+		String saida="";
+		String erro="";
+		Matricula matricula = new Matricula();
+		List<Disciplina> disciplinas = new ArrayList<>();
+		List<MatriculaDisciplinas> matriculaDisciplinas = new ArrayList<>();
+		
+		try {
+			if(cmd.contains("Iniciar Matricula")) {
+				matriculaDisciplinas = listarDisciplinas(cpf);
+			}
+			if(cmd.contains("Confirmar Matricula")) {
+				inserirMatricula(disciplinasSelecionadas);
+				saida = "Matricula finalizada";
+			}
+		} catch (SQLException | ClassNotFoundException e) {		
+			erro = e.getMessage();
+		} finally {
+			request.setAttribute("saida", saida);
+			request.setAttribute("erro", erro);
+			request.setAttribute("disciplinas", matriculaDisciplinas);
+			
+			RequestDispatcher rd = request.getRequestDispatcher("matricula.jsp");
+			rd.forward(request, response);
+		}
 	}
 
+	private void inserirMatricula(String[] disciplinasSelecionadas) {
+		GenericDao gDao = new GenericDao();
+		MatriculaDisciplinaDao mdDao = new MatriculaDisciplinaDao(gDao);
+		
+	}
+
+	private List<MatriculaDisciplinas> listarDisciplinas(String alunoCpf) throws ClassNotFoundException, SQLException {
+		GenericDao gDao = new GenericDao();
+		MatriculaDisciplinaDao mdDao = new MatriculaDisciplinaDao(gDao);
+		List<MatriculaDisciplinas> md = new ArrayList<>();
+		md = mdDao.listarSituacao(alunoCpf);
+		return md;
+	}
 }

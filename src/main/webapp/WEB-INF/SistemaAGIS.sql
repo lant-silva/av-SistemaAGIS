@@ -65,26 +65,28 @@ FOREIGN KEY(codigo_disciplina) REFERENCES disciplina(codigo)
 
 CREATE TABLE matricula(
 codigo					INT				NOT NULL,
-aluno_cpf				CHAR(11)		NOT NULL,
-turno					VARCHAR(20)		NOT NULL,
-codigo_curso			INT				NOT NULL
+aluno_cpf				CHAR(11)		NOT NULL
 PRIMARY KEY(codigo)
-FOREIGN KEY(aluno_cpf) REFERENCES aluno(cpf),
-FOREIGN KEY(codigo_curso) REFERENCES curso(codigo)
+FOREIGN KEY(aluno_cpf) REFERENCES aluno(cpf)
 )
 
 CREATE TABLE matricula_disciplina(
-codigo_disciplina		INT				NOT NULL,
 codigo_matricula		INT				NOT NULL,
-estado_disciplina		VARCHAR(50)		NOT NULL
+codigo_disciplina		INT				NOT NULL,
+situacao				VARCHAR(50)		NOT NULL
 PRIMARY KEY(codigo_disciplina, codigo_matricula)
 FOREIGN KEY(codigo_disciplina) REFERENCES disciplina(codigo),
 FOREIGN KEY(codigo_matricula) REFERENCES matricula(codigo)
 )
 
 
--- Cria��o Procedures
+-- Stored Procedures
 ---------------------------------------------------------------------------------
+
+-- Procedure de validação do cpf
+---------------------------------------------------------------------------------
+
+-- Início da procedure
 CREATE PROCEDURE sp_validarcpf(@cpf CHAR(11), @valido BIT OUTPUT)
 AS
 DECLARE @soma1 INT,
@@ -140,8 +142,10 @@ BEGIN
 	SET @valido = 0
 END
 
+-- Procedure de validação da idade
 ------------------------------------------------------------------------------------
 
+-- Início da procedure
 CREATE PROCEDURE sp_validaridade(@dtnasc DATE, @valido BIT OUTPUT)
 AS
 IF(DATEDIFF(YEAR,@dtnasc,GETDATE()) < 16)
@@ -152,9 +156,12 @@ ELSE
 BEGIN
 	SET @valido = 1
 END
+-- Fim da procedure
 
+-- Procedure de geração do RA
 --------------------------------------------------------------------------------------------
 
+-- Início da procedure
 CREATE PROCEDURE sp_gerarra(@ano CHAR(4), @sem CHAR(1), @ra CHAR(9) OUTPUT)
 AS
 
@@ -168,7 +175,7 @@ BEGIN
 	
 	SET @ra = @ano + @sem + @n1 + @n2 + @n3 + @n4
 	
-	-- Verificar se o RA gerado já pertence a um aluno, caso contrário, gere outro
+	-- Verifica se o RA gerado já pertence a um aluno, caso contrário, outro RA vai ser gerado
 	IF EXISTS(SELECT ra FROM aluno WHERE ra = @ra)
 	BEGIN 
 		SET @existe = 1
@@ -179,16 +186,30 @@ BEGIN
 	END
 END
 
+-- Procedure de geração do Ano e Semestre limite
 ----------------------------------------------------------------------------------------------
 
+-- Início da procedure
 CREATE PROCEDURE sp_geraranolimite(@ano CHAR(4), @sem CHAR(1), @anolimite CHAR(6) OUTPUT)
 AS
 BEGIN
 SET @ano = CAST((CAST(@ano AS INT) + 5) AS CHAR)
+
+IF(@sem = '1')
+BEGIN
+	SET @sem = '2'
+END
+ELSE
+BEGIN
+	SET @sem = '1'
+END
 SET @anolimite = FORMATMESSAGE('%s/%s', @ano, @sem)
 END
+
+-- Procedure IUD Aluno
 ----------------------------------------------------------------------------------------------
 
+-- Início da procedure
 CREATE PROCEDURE sp_iudaluno(@acao CHAR(1),
 				 		     @cpf CHAR(11),
 				 			 @ra CHAR(9) OUTPUT,
@@ -262,6 +283,8 @@ BEGIN
 	 @semestregraduacao,
 	 @anolimite,
 	 @cursocodigo)
+
+	 EXEC sp_matricula @cpf
 	SET @saida = 'Aluno inserido'
 END
 ELSE 
@@ -298,23 +321,41 @@ BEGIN
 	RAISERROR('Erro desconhecido', 16, 1)
 END
 
+delete aluno
+delete matricula
+delete matricula_disciplina
+
+SELECT * FROM aluno
+SELECT * FROM matricula
+SELECT * FROM matricula_disciplina 
+
 DECLARE @saida VARCHAR(200)
-EXEC sp_iudaluno 'I', '52169314814', 0, 'fulano', 'fulano', '2000-01-01', 'fulano@email.com', 'fulano@email.com', '2000-01-01', 'instituicao', 800, 10, '2002', '1', '20051', '0', @saida OUTPUT
+EXEC sp_iudaluno 'I', '52169314814', 0, 'fulano', 'fulano', '2000-01-01', 'fulano@email.com', 'fulano@email.com', '2000-01-01', 'instituicao', 800, 10, '2002', '1', '20051', '0', 101, @saida OUTPUT
 PRINT @saida
+-- Fim da procedure
+
+SELECT d.codigo AS codigo, d.nome AS nome, d.qtd_aulas AS qtd_aulas
+d.horario AS horario, d.dia AS dia, md.situacao AS situacao, d.curso_codigo AS curso_codigo
+FROM matricula_disciplina md, disciplina d, aluno a, matricula m
+WHERE m.codigo = md.codigo_matricula
+AND d.codigo = md.codigo_disciplina
+AND m.aluno_cpf = ?
+
 
 -- Procedure IUD Cursos
 --------------------------------------------------------------------------
 
+-- Início da procedure
 CREATE PROCEDURE sp_iudcurso(@acao CHAR(1), @codigo INT, @nome VARCHAR(100), @cargahoraria INT, @sigla VARCHAR(10), @notaenade INT, @saida VARCHAR(300) OUTPUT)
 AS
-IF(UPPER(@acao) = 'I')
+IF(UPPER(@acao) = 'I') --Operação de inserção
 BEGIN
 	INSERT INTO curso (codigo, nome, carga_horaria, sigla, nota_enade) VALUES
 	(@codigo, @nome, @cargahoraria, @sigla, @notaenade)
 	SET @saida = 'Curso inserido'
 END
 ELSE 
-IF(UPPER(@acao) = 'U')
+IF(UPPER(@acao) = 'U') --Operação de atualização
 BEGIN 
 	UPDATE curso
 	SET nome = @nome, carga_horaria = @cargahoraria, sigla = @sigla, nota_enade = @notaenade
@@ -322,7 +363,7 @@ BEGIN
 	SET @saida = 'Curso alterado'
 END
 ELSE 
-IF(UPPER(@acao) = 'D')
+IF(UPPER(@acao) = 'D') --Operação de exclusão
 BEGIN 
 	DELETE curso
 	WHERE codigo = @codigo
@@ -342,9 +383,10 @@ SELECT * FROM curso
 -- Procedure IUD Disciplina
 ----------------------------------------------------------------------------------------------
 
+-- Início da procedure
 CREATE PROCEDURE sp_iuddisciplina (@acao CHAR(1), @codigo INT, @nome VARCHAR(100), @qtdaulas INT, @horario TIME, @diasemana VARCHAR(20), @cursocodigo INT, @saida VARCHAR(200) OUTPUT)
 AS
-IF(UPPER(@acao) = 'I')
+IF(UPPER(@acao) = 'I') --Operação de inserção
 BEGIN
 	
 	--Verificar se a disciplina não é duplicada com outro curso
@@ -361,7 +403,7 @@ BEGIN
 	END
 END
 ELSE
-IF(UPPER(@acao) = 'U')
+IF(UPPER(@acao) = 'U') --Operação de atualização
 BEGIN
 	--Verificar se a disciplina não é duplicada com outro curso
 	IF EXISTS(SELECT curso_codigo FROM disciplina WHERE curso_codigo = @cursocodigo AND nome = @nome)
@@ -378,7 +420,7 @@ BEGIN
 	END
 END
 ELSE
-IF(UPPER(@acao) = 'D')
+IF(UPPER(@acao) = 'D') --Operação de exclusão
 BEGIN
 	DELETE disciplina
 	WHERE codigo = @codigo
@@ -388,10 +430,82 @@ ELSE
 BEGIN
 	RAISERROR('Operação inválida', 16, 1)
 END
+-- Fim da procedure
+
+-- Procedure IUD Matrícula 
+------------------------------------------------------------------------
+
+-- Início da procedure
+CREATE PROCEDURE sp_inserirmatricula
+-- Fim da procedure
+
+CREATE FUNCTION fn_codigomatricula()
+RETURNS INT
+AS
+BEGIN
+	DECLARE @cod INT
+	IF NOT EXISTS(SELECT * FROM matricula)
+	BEGIN
+		SET @cod = 1000001
+	END
+	ELSE
+	BEGIN
+		SET @cod = (SELECT TOP 1 codigo FROM matricula ORDER BY codigo ASC) + 1
+	END
+	RETURN @cod
+END
+
+INSERT INTO matricula VALUES
+(1009002, '52169314814')
+
+DELETE matricula
+
+SELECT * FROM matricula
+
+SELECT dbo.fn_codigomatricula() AS codigo
+
+-- Procedimento Gerar matricula inicial de um aluno
+-----------------------------------------------------------------------------------
+
+-- Início da procedure
+CREATE PROCEDURE sp_matricula(@cpf CHAR(11))
+AS
+BEGIN
+	DECLARE @codigomatricula INT
+	SET @codigomatricula = dbo.fn_codigomatricula()
+
+	INSERT INTO matricula VALUES
+	(@codigomatricula, @cpf)
+	
+	INSERT INTO matricula_disciplina (codigo_matricula, codigo_disciplina, situacao)
+	SELECT * FROM dbo.fn_matriculainicial(@codigomatricula)
+END
+
+
+-- Inicio da função
+CREATE FUNCTION fn_matriculainicial(@codigomatricula INT)
+RETURNS @tabela TABLE(
+codigo_matricula INT,
+codigo_disciplina INT,
+situacao VARCHAR(50)
+)
+AS
+BEGIN
+	INSERT INTO @tabela (codigo_matricula, codigo_disciplina, situacao)
+	SELECT m.codigo, d.codigo, 'Não cursado' AS situacao
+	FROM matricula m, curso c, disciplina d, aluno a
+	WHERE d.curso_codigo = c.codigo
+		AND a.curso_codigo = c.codigo
+		AND m.codigo = @codigomatricula
+		RETURN
+END
+-- Fim da função
+-- Fim da procedure
 
 -- Procedure Conteudo
 -------------------------------------------------------------------------
 
+-- Início da procedure
 CREATE PROCEDURE sp_iudconteudo (@acao CHAR(1), @codigo INT, @descricao VARCHAR(200), @codigodisciplina INT, @saida VARCHAR(200) OUTPUT)
 AS
 IF(UPPER(@acao) = 'I')
@@ -458,13 +572,16 @@ SELECT * FROM v_conteudos
 -- Testes
 --------------------------------------------------------------------------------------
 
-DELETE curso
+select * from curso
+select * from curso c, disciplina d where d.curso_codigo = c.codigo
 
+-- Valores de teste para tabela Curso
 INSERT INTO curso VALUES
 (101, 'Análise e Desenvolvimento de Sistemas', 2800, 'ADS', 5),
 (102, 'Desenvolvimento de Software Multiplataforma', 1400, 'DSM', 5),
 (103, 'Recursos Humanos', 1400, 'GRH', 4)
 
+-- Valores de teste para tabela Disciplina
 -- Curso 101
 INSERT INTO disciplina VALUES
 (1001, 'Laboratório de Banco de Dados', 4, '14:50', 'Segunda', 101),
@@ -508,6 +625,12 @@ INSERT INTO disciplina VALUES
 (1039, 'Inteligência Artificial', 4, '13:00', 'Quarta', 101),
 (1040, 'Programação para Mainframes', 4, '14:50', 'Quarta', 101)
 
+INSERT INTO disciplina VALUES
+(1041, 'Programação DSM', 4, '13:00', 'Segunda', 102)
+
+
+-- Valores de teste para tabela Conteudo
+-- Disciplinas 1001, 1002, 1003
 INSERT INTO conteudo VALUES
 (100001, 'Stored Procedures', 1001),
 (100002, 'Union e Views', 1001),

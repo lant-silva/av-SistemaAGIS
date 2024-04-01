@@ -17,7 +17,7 @@
 </header>
 </head>
 <body>
-	<div align="center" class"container">
+	<div align="center" class="container">
 		<form action="disciplina" method="post">
 			<table>
 				<tr>

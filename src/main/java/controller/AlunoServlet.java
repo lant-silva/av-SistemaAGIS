@@ -16,6 +16,7 @@ import model.Curso;
 import persistence.AlunoDao;
 import persistence.CursoDao;
 import persistence.GenericDao;
+import persistence.MatriculaDisciplinaDao;
 
 @WebServlet("/aluno")
 public class AlunoServlet extends HttpServlet {

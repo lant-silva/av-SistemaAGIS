@@ -15,22 +15,16 @@
 </header>
 </head>
 <body>
-	<div align="center" class="container">
 		<form action="matricula" method="post">
+	<div align="center" class="container">
 			<tr>
-				<td colspan="3"><input class="input_data" type="number" min="0"
-					max="99999999999" id="codigo" name="codigo"
-					placeholder="Código Matricula" value=''>
+				<td colspan="3"><input class="input_data" type="text"
+					id="cpf" name="cpf" placeholder="CPF" value=''  maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
 				<td />
-				<td><input type="submit" id="botao" name="botao" value="Buscar">
+				<td><input type="submit" id="botao" name="botao" value="Iniciar Matricula">
 				<td />
 			</tr>
-			<tr>
-				<td colspan="3"><input class="input_data" type="number" min="0"
-					max="99999999999" id="cpf" name="cpf" placeholder="CPF" value=''>
-				<td />
-			</tr>
-		</form>
+		
 	</div>
 	</br>
 	<div align="center">
@@ -50,7 +44,7 @@
 	</div>
 	</br>
 	<div align="center">
-		<!--<c:if test="${not empty disciplinas }">-->
+		<c:if test="${not empty disciplinas }">
 			<table class="table_round">
 				<thead>
 					<tr>
@@ -63,16 +57,24 @@
 					</tr>
 				</thead>
 				<tbody>
-					<!--<c:forEach var="d" items="${disciplinas }">-->
+					<c:forEach var="d" items="${disciplinas }">
 						<tr>
-							<td><input type="checkbox" name="disciplinasSelecionadas" value=""></td>
-							<td><c:out value="${c.codigo}" /></td>
-							<td><c:out value="${c.codigo}" /></td>
+							<td>
+								<div>
+									<input type="checkbox" name="disciplinasSelecionadas" value="${d.disciplina.codigo}">									
+								</div>
+							</td>
+							<td><c:out value="${d.disciplina.nome}" /></td>
+							<td><c:out value="${d.disciplina.qtdAulas}" /></td>
+							<td><c:out value="${d.disciplina.horario}" /></td>
+							<td><c:out value="${d.disciplina.diaSemana}" /></td>
+							<td><c:out value="${d.situacao}" /></td>
 						</tr>
-					<!--</c:forEach>-->
+					</c:forEach>
 				</tbody>
 			</table>
-		<!--</c:if>-->
+		</c:if>
 	</div>
+	</form>
 </body>
 </html>
