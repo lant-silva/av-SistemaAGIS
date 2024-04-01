@@ -50,8 +50,21 @@
 							id="dataNasc" name="dataNasc"
 							value='<c:out value="${aluno.dataNasc}"></c:out>'></td>
 					</tr>
-					
-					
+					<tr>
+						<td colspan="3"><input class="input_data" type="text"
+							id="telefone" name="telefone" placeholder="Telefone" 
+							value='<c:out value="${aluno.ra}"></c:out>'>
+						<td />
+						<td>
+							<input type="submit" id="adicionarTelefone" name="botao" value="+">
+						<td />
+						<td>
+							<input type="submit" id="removerTelefone" name="botao" value="-">
+						<td />
+						<ul id="listaTelefones" name="listaTelefones">
+							
+						</ul>
+					<tr />
 					<tr>
 						<td colspan="4"><input class="input_data" type="text"
 							maxlength="200" id="emailPessoal" name="emailPessoal"
@@ -217,5 +230,33 @@
 			</table>
 		</c:if>
 	</div>
+<script>
+        document.getElementById('adicionarTelefone').addEventListener('click', function() {
+        	event.preventDefault();
+            var telefone = document.getElementById('telefone').value;
+            adicionarTelefone(telefone);
+        });
+
+        document.getElementById('removerTelefone').addEventListener('click', function() {
+        	event.preventDefault();
+            var telefone = document.getElementById('telefone').value;
+            removerTelefone(telefone);
+        });
+
+        function adicionarTelefone(telefone) {
+            var listaTelefones = document.getElementById('listaTelefones');
+            var novoTelefoneItem = document.createElement('li');
+            novoTelefoneItem.textContent = telefone;
+            listaTelefones.appendChild(novoTelefoneItem);
+        }
+
+        function removerTelefone(telefone) {
+        	var listaTelefones = document.getElementById('listaTelefones');
+            var ultimoTelefone = listaTelefones.lastElementChild;
+            if (ultimoTelefone) {
+                listaTelefones.removeChild(ultimoTelefone);
+            }
+        }
+    </script>
 </body>
 </html>

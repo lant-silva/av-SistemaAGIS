@@ -18,9 +18,9 @@ public class MatriculaDisciplinaDao implements IDisciplina{
 	}
 
 	@Override
-	public void inserirMatricula(String[] disciplinasSelecionadas) throws SQLException, ClassNotFoundException {
+	public void inserirMatricula(String cpf, int codigoDisciplina) throws SQLException, ClassNotFoundException {
 		Connection c = gDao.getConnection();
-		String sql = "INSERT INTO matricula_disciplina VALUES (codigo_matricula = ?, codigo_disciplina = ?, sitaucao = ?) ";
+		String sql = "CALL sp_inserirmatricula(?,?,?)";
 		PreparedStatement ps = c.prepareStatement(sql);
 		ps.setInt(1, codigoMatricula);
 		ps.setInt(2, codigoDisciplina);
@@ -35,15 +35,13 @@ public class MatriculaDisciplinaDao implements IDisciplina{
 			throws SQLException, ClassNotFoundException {
 		List<MatriculaDisciplinas> ms = new ArrayList<>();
 		Connection c = gDao.getConnection();
-		String sql = """
-				    SELECT d.codigo AS codigo, d.nome AS nome, d.qtd_aulas AS qtd_aulas,
-				 	d.horario AS horario, d.dia AS dia, md.situacao AS situacao, d.curso_codigo AS curso_codigo,
-				 	md.codigo_matricula AS codigo_matricula
-					FROM matricula_disciplina md, disciplina d, aluno a, matricula m
-					WHERE m.codigo = md.codigo_matricula
-					AND d.codigo = md.codigo_disciplina
-					AND m.aluno_cpf = ? 
-					 """;
+		String sql = "SELECT d.codigo AS codigo, d.nome AS nome, d.qtd_aulas AS qtd_aulas,"
+				+ " d.horario AS horario, d.dia AS dia, md.situacao AS situacao, d.curso_codigo AS curso_codigo,"
+				+ "	md.codigo_matricula AS codigo_matricula"
+				+ "	FROM matricula_disciplina md, disciplina d, aluno a, matricula m"
+				+ "	WHERE m.codigo = md.codigo_matricula"
+				+ "	AND d.codigo = md.codigo_disciplina"
+				+ "	AND m.aluno_cpf = ? ";
 		PreparedStatement ps = c.prepareStatement(sql);
 		ps.setString(1, alunoCpf);
 		ResultSet rs = ps.executeQuery();

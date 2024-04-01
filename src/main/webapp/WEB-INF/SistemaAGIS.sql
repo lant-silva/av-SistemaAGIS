@@ -65,7 +65,8 @@ FOREIGN KEY(codigo_disciplina) REFERENCES disciplina(codigo)
 
 CREATE TABLE matricula(
 codigo					INT				NOT NULL,
-aluno_cpf				CHAR(11)		NOT NULL
+aluno_cpf				CHAR(11)		NOT NULL,
+data_matricula			DATE			NOT NULL
 PRIMARY KEY(codigo)
 FOREIGN KEY(aluno_cpf) REFERENCES aluno(cpf)
 )
@@ -334,14 +335,6 @@ EXEC sp_iudaluno 'I', '52169314814', 0, 'fulano', 'fulano', '2000-01-01', 'fulan
 PRINT @saida
 -- Fim da procedure
 
-SELECT d.codigo AS codigo, d.nome AS nome, d.qtd_aulas AS qtd_aulas
-d.horario AS horario, d.dia AS dia, md.situacao AS situacao, d.curso_codigo AS curso_codigo
-FROM matricula_disciplina md, disciplina d, aluno a, matricula m
-WHERE m.codigo = md.codigo_matricula
-AND d.codigo = md.codigo_disciplina
-AND m.aluno_cpf = ?
-
-
 -- Procedure IUD Cursos
 --------------------------------------------------------------------------
 
@@ -436,7 +429,7 @@ END
 ------------------------------------------------------------------------
 
 -- Início da procedure
-CREATE PROCEDURE sp_inserirmatricula
+CREATE PROCEDURE sp_inserirmatricula(
 -- Fim da procedure
 
 CREATE FUNCTION fn_codigomatricula()
@@ -455,23 +448,13 @@ BEGIN
 	RETURN @cod
 END
 
-INSERT INTO matricula VALUES
-(1009002, '52169314814')
-
-DELETE matricula
-
-SELECT * FROM matricula
-
-SELECT dbo.fn_codigomatricula() AS codigo
-
--- Procedimento Gerar matricula inicial de um aluno
+-- Procedimento Gerar matricula de um aluno
 -----------------------------------------------------------------------------------
 
 -- Início da procedure
-CREATE PROCEDURE sp_matricula(@cpf CHAR(11))
+CREATE PROCEDURE sp_matricula(@cpf CHAR(11), @codigomatricula INT OUTPUT)
 AS
 BEGIN
-	DECLARE @codigomatricula INT
 	SET @codigomatricula = dbo.fn_codigomatricula()
 
 	INSERT INTO matricula VALUES
@@ -501,6 +484,52 @@ BEGIN
 END
 -- Fim da função
 -- Fim da procedure
+
+-- Procedure de verificação de conflito de horarios em uma matricula
+------------------------------------------------------------------------
+
+CREATE PROCEDURE sp_verificarconflitohorario(@codigomatricula INT, @horarioinicio TIME, @qtdaulas INT, @diasemana VARCHAR(50), @conflito BIT OUTPUT)
+AS
+DECLARE @conflitoexiste INT,
+		@horariofim TIME
+
+SET @horariofim = DATEADD(MINUTE, @qtdaulas * 50, @horarioinicio)
+
+SELECT @conflitoexiste = COUNT(*)
+FROM matricula_disciplina md, disciplina d
+WHERE md.codigo_matricula = @codigomatricula
+	AND md.codigo_disciplina = d.codigo
+	AND d.dia = @diasemana
+	AND md.situacao = 'Em curso'
+	AND ((@horarioinicio BETWEEN d.horario AND @horariofim)
+		 OR (@horariofim BETWEEN d.horario AND @horariofim)
+		)
+
+print @conflitoexiste
+
+IF (@conflitoexiste > 1)
+BEGIN
+	SET @conflito = 1
+END
+ELSE
+BEGIN
+	SET @conflito = 0
+END
+
+DECLARE @conflito BIT
+EXEC sp_verificarconflitohorario 1000001, '13:00', 4, 'Segunda', @conflito OUTPUT
+PRINT @conflito
+
+SELECT * FROM matricula_disciplina WHERE codigo_matricula = 1000001
+
+UPDATE matricula_disciplina
+SET situacao = 'Em curso'
+WHERE codigo_disciplina = 1001
+
+-- Procedure Inserção de uma nova matricula
+-----------------------------------------------------------------------
+
+CREATE PROCEDURE sp_inserirmatricula()
 
 -- Procedure Conteudo
 -------------------------------------------------------------------------

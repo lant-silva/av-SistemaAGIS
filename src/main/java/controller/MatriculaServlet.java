@@ -86,10 +86,17 @@ public class MatriculaServlet extends HttpServlet {
 		}
 	}
 
-	private void inserirMatricula(String[] disciplinasSelecionadas) {
+	private void inserirMatricula(String[] disciplinasSelecionadas) throws ClassNotFoundException, SQLException {
 		GenericDao gDao = new GenericDao();
 		MatriculaDisciplinaDao mdDao = new MatriculaDisciplinaDao(gDao);
-		
+		DisciplinaDao dDao = new DisciplinaDao(gDao);
+		Disciplina d;
+		for(String str : disciplinasSelecionadas) {
+			d = new Disciplina();
+			d.setCodigo(Integer.parseInt(str));
+			d = dDao.consultar(d);
+			mdDao.inserirMatricula(disciplinasSelecionadas);
+		}
 	}
 
 	private List<MatriculaDisciplinas> listarDisciplinas(String alunoCpf) throws ClassNotFoundException, SQLException {

@@ -15,66 +15,117 @@
 </header>
 </head>
 <body>
-		<form action="matricula" method="post">
-	<div align="center" class="container">
+	<form action="matricula" method="post">
+		<div align="center" class="container">
 			<tr>
-				<td colspan="3"><input class="input_data" type="text"
-					id="cpf" name="cpf" placeholder="CPF" value=''  maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+				<td colspan="3"><input class="input_data" type="text" id="cpf"
+					name="cpf" placeholder="CPF" value='' maxlength="11"
+					oninput="this.value = this.value.replace(/[^0-9]/g, '')">
 				<td />
-				<td><input type="submit" id="botao" name="botao" value="Iniciar Matricula">
+				<td><input type="submit" id="botao" name="botao"
+					value="Iniciar Matricula">
 				<td />
 			</tr>
-		
-	</div>
-	</br>
-	<div align="center">
+
+		</div>
+		</br>
+		<div align="center">
 			<c:if test="${not empty saida }">
 				<H2>
-					<b><c:out value="${saida }"/></b>
+					<b><c:out value="${saida }" /></b>
 				</H2>
 			</c:if>
 		</div>
-	<br />
-	<div align="center">
-		<c:if test="${not empty erro }">
-			<H2>
-				<b><c:out value="${erro }" /></b>
-			</H2>
-		</c:if>
-	</div>
-	</br>
-	<div align="center">
-		<c:if test="${not empty disciplinas }">
-			<table class="table_round">
-				<thead>
-					<tr>
-						<th></th>
-						<th>Nome</th>
-						<th>Qtd. Aulas</th>
-						<th>Horário de Início</th>
-						<th>Dia</th>
-						<th>Situação</th>
-					</tr>
-				</thead>
-				<tbody>
-					<c:forEach var="d" items="${disciplinas }">
+		<br />
+		<div align="center">
+			<c:if test="${not empty erro }">
+				<H2>
+					<b><c:out value="${erro }" /></b>
+				</H2>
+			</c:if>
+		</div>
+		</br>
+		<div align="center">
+			<c:if test="${not empty disciplinas }">
+				<table id="listaDisciplinas" class="table_round" align="center">
+					<thead>
 						<tr>
-							<td>
-								<div>
-									<input type="checkbox" name="disciplinasSelecionadas" value="${d.disciplina.codigo}">									
-								</div>
-							</td>
-							<td><c:out value="${d.disciplina.nome}" /></td>
-							<td><c:out value="${d.disciplina.qtdAulas}" /></td>
-							<td><c:out value="${d.disciplina.horario}" /></td>
-							<td><c:out value="${d.disciplina.diaSemana}" /></td>
-							<td><c:out value="${d.situacao}" /></td>
+							<th></th>
+							<th>Nome</th>
+							<th>Qtd. Aulas</th>
+							<th>Horário de Início</th>
+							<th>Dia</th>
+							<th>Situação</th>
 						</tr>
-					</c:forEach>
-				</tbody>
-			</table>
-		</c:if>
-	</div>
+					</thead>
+					<tbody>
+						<c:forEach var="d" items="${disciplinas }">
+							<tr>
+								<td>
+									<div>
+										<input type="checkbox" name="disciplinasSelecionadas"
+											value="${d.disciplina.codigo}">
+									</div>
+								</td>
+								<td><c:out value="${d.disciplina.nome}" /></td>
+								<td><c:out value="${d.disciplina.qtdAulas}" /></td>
+								<td><c:out value="${d.disciplina.horario}" /></td>
+								<td><c:out value="${d.disciplina.diaSemana}" /></td>
+								<td><c:out value="${d.situacao}" /></td>
+							</tr>
+						</c:forEach>
+						</br>
+						<td><input type="submit" id="botao" name="botao"
+							value="Confirmar Matricula">
+						<td />
+					</tbody>
+				</table>
+			</c:if>
+		</div>
 	</form>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	event.preventDefault();
+    var listaDisciplinas = document.getElementById('listaDisciplinas');
+    var botaoConfirmar = document.querySelector('input[value="Confirmar Matricula"]');
+    inicializar();
+
+function verificaPeriodoMatricula() {
+    var dataAtual = new Date();
+    var mes = dataAtual.getMonth(); 
+
+
+    if (mes === 0 || mes === 6) {
+        var dia = dataAtual.getDate(); // Obtém o dia do mês atual
+
+        // Verifica se o dia do mês está entre 15 e 21
+        if (dia >= 15 && dia <= 21) {
+            return true; // A data atual está dentro do período de matrícula
+        }
+    }
+
+    return false;
+}
+
+function desabilitarMatricula() {
+    // Desabilita as checkboxes na tabela de disciplinas
+    var checkboxes = listaDisciplinas.querySelectorAll('input[type="checkbox"]');
+    	checkboxes.forEach(function(checkbox) {
+        checkbox.disabled = true;
+    });
+
+    var botaoConfirmar = document.querySelector('input[value="Confirmar Matricula"]');
+    botaoConfirmar.disabled = true;
+    botaoConfirmar.hidden = true;
+}
+
+function inicializar() {
+    if (!verificaPeriodoMatricula()) {
+        desabilitarMatricula();
+    }
+}
+});
+
+</script>
 </body>
 </html>

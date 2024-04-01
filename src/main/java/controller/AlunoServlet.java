@@ -144,7 +144,6 @@ public class AlunoServlet extends HttpServlet {
 					RequestDispatcher rd = request.getRequestDispatcher("aluno.jsp");
 					rd.forward(request, response);
 				}
-			
 	}
 
 	private Curso chamarCurso(Curso cur) throws ClassNotFoundException, SQLException {
