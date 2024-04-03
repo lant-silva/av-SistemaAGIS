@@ -4,11 +4,23 @@ DROP DATABASE agis
 CREATE DATABASE agis
 USE agis
 
--- Cria��o Tabelas
+/*
+ Banco de Dados - Sistema AGIS
+ Todas as queries SQL do sistema
+
+ ÍNDICE:
+ IND00 - Criação de Tabelas
+ IND01 - Stored Procedures
+ IND02 - User Defined Functions
+ IND03 - Views
+ IND04 - Inserções para teste
+
+*/
+--  IND00 - Criação de Tabelas
 -------------------------------------------------------------------------------
 
 CREATE TABLE aluno(
-cpf						CHAR(11)		NOT NULL,
+cpf						CHAR(11)		NOT NULL	UNIQUE,
 ra						CHAR(9)			NOT NULL,
 nome					VARCHAR(100)	NOT NULL,
 nome_social				VARCHAR(100)	NULL,
@@ -24,15 +36,15 @@ semestre_ingresso		CHAR(1)			NOT NULL,
 semestre_graduacao		CHAR(6)			NOT NULL,
 ano_limite				CHAR(6)			NOT NULL,
 curso_codigo			INT				NOT NULL
-PRIMARY KEY(cpf)
+PRIMARY KEY(ra)
 FOREIGN KEY(curso_codigo) REFERENCES curso(codigo)
 )
 
 CREATE TABLE aluno_telefone(
 telefone				CHAR(11)		NOT NULL,
-aluno_cpf				CHAR(11)		NOT NULL
-PRIMARY KEY(telefone, aluno_cpf)
-FOREIGN KEY(aluno_cpf) REFERENCES aluno(cpf)
+aluno_ra				CHAR(9)		NOT NULL
+PRIMARY KEY(telefone, aluno_ra)
+FOREIGN KEY(aluno_ra) REFERENCES aluno(ra)
 )
 
 CREATE TABLE curso(
@@ -50,7 +62,7 @@ nome					VARCHAR(100)	NOT NULL,
 qtd_aulas				INT				NOT NULL,
 horario					TIME			NOT NULL,
 dia						VARCHAR(20)		NOT NULL,
-curso_codigo				INT				NOT NULL
+curso_codigo			INT				NOT NULL
 PRIMARY KEY(codigo)
 FOREIGN KEY(curso_codigo) REFERENCES curso(codigo)
 )
@@ -64,23 +76,23 @@ FOREIGN KEY(codigo_disciplina) REFERENCES disciplina(codigo)
 )
 
 CREATE TABLE matricula(
-codigo					INT				NOT NULL	IDENTITY(1000001, 1),
-aluno_cpf				CHAR(11)		NOT NULL
+codigo					INT				NOT NULL,
+aluno_ra				CHAR(9)			NOT NULL
 PRIMARY KEY(codigo)
-FOREIGN KEY(aluno_cpf) REFERENCES aluno(cpf)
+FOREIGN KEY(aluno_ra) REFERENCES aluno(ra)
 )
 
 CREATE TABLE matricula_disciplina(
 codigo_matricula		INT				NOT NULL,
 codigo_disciplina		INT				NOT NULL,
 situacao				VARCHAR(50)		NOT NULL
-PRIMARY KEY(codigo_disciplina, codigo_matricula)
+PRIMARY KEY(codigo_matricula, codigo_disciplina)
 FOREIGN KEY(codigo_disciplina) REFERENCES disciplina(codigo),
 FOREIGN KEY(codigo_matricula) REFERENCES matricula(codigo)
 )
 
 
--- Stored Procedures
+-- IND01 - Stored Procedures
 ---------------------------------------------------------------------------------
 
 -- Procedure de validação do cpf
@@ -102,7 +114,7 @@ SET @soma2 = 0
 IF LEN(@cpf) <> 11
 BEGIN
 	SET @valido = 0
-	RAISERROR('CPF Inv�lido', 16, 1)
+	RAISERROR('CPF Inválido', 16, 1)
 END
 
 WHILE(@cont <= 9)	
@@ -285,7 +297,7 @@ BEGIN
 	 @anolimite,
 	 @cursocodigo)
 
-	 EXEC sp_gerarmatricula @cpf, @codigomatricula
+	 EXEC sp_gerarmatricula @ra, @codigomatricula
 	SET @saida = 'Aluno inserido'
 END
 ELSE 
@@ -310,29 +322,31 @@ BEGIN
 	WHERE cpf = @cpf
 	SET @saida = 'Aluno atualizado'
 END
+/*
+ Marcado para remoção (Exclusão do aluno é desnecessária para o funcionamento do sistema)
 ELSE 
 IF(UPPER(@acao) = 'D')	
 BEGIN
+	DELETE matricula_disciplina
+	FROM matricula_disciplina md, matricula m, aluno a
+	WHERE a.cpf = m.aluno_cpf
+		AND md.codigo_matricula = m.codigo
+
+	DELETE matricula
+	FROM matricula m, aluno a
+	WHERE a.cpf = m.aluno_cpf
+
 	DELETE aluno
 	WHERE cpf = @cpf
 	SET @saida = 'Aluno removido'
 END
+*/
 ELSE
 BEGIN 
 	RAISERROR('Erro desconhecido', 16, 1)
 END
 
-delete aluno
-delete matricula
-delete matricula_disciplina
 
-SELECT * FROM aluno
-SELECT * FROM matricula
-SELECT * FROM matricula_disciplina 
-
-DECLARE @saida VARCHAR(200)
-EXEC sp_iudaluno 'I', '52169314814', 0, 'fulano', 'fulano', '2000-01-01', 'fulano@email.com', 'fulano@email.com', '2000-01-01', 'instituicao', 800, 10, '2002', '1', '20051', '0', 101, @saida OUTPUT
-PRINT @saida
 -- Fim da procedure
 
 -- Procedure IUD Cursos
@@ -433,19 +447,20 @@ EXEC sp_inserirmatricula '52169314814', 1000001, 1001, @saida OUTPUT
 PRINT @saida
 
 -- Início da procedure
-CREATE PROCEDURE sp_inserirmatricula(@cpf CHAR(11), @codigomatricula INT, @codigodisciplina INT, @saida VARCHAR(200) OUTPUT)
+CREATE PROCEDURE sp_inserirmatricula(@ra CHAR(9), @codigomatricula INT, @codigodisciplina INT, @saida VARCHAR(200) OUTPUT)
 AS
 DECLARE @conflito BIT,
 		@qtdaula INT,
 		@horario TIME,
 		@diasemana VARCHAR(50)
 
-SELECT @qtdaula = d.qtd_aulas, @horario = d.horario, @diasemana = d.dia
+
+SELECT TOP 1 @codigomatricula = m.codigo, @qtdaula = d.qtd_aulas, @horario = d.horario, @diasemana = d.dia
 FROM disciplina d, matricula_disciplina md, matricula m
 WHERE d.codigo = md.codigo_disciplina
 	AND md.codigo_matricula = m.codigo
-
-SET @codigomatricula = dbo.fn_codigomatricula()
+	AND m.aluno_ra = @ra
+ORDER BY m.codigo DESC
 
 EXEC sp_verificarconflitohorario @codigomatricula, @horario, @qtdaula, @diasemana, @conflito OUTPUT
 
@@ -461,73 +476,70 @@ BEGIN
 	RAISERROR('Matricula cancelada: Existe conflito de horários', 16, 1)
 	RETURN
 END
--- Gerar um novo código de matricula
 -- Fim da procedure
-/* 
-Desnecessario: usar IDENTITY na matricula
-CREATE FUNCTION fn_codigomatricula()
-RETURNS INT
-AS
-BEGIN
-	DECLARE @cod INT
-	IF NOT EXISTS(SELECT * FROM matricula)
-	BEGIN
-		SET @cod = 1000001
-	END
-	ELSE
-	BEGIN
-		SET @cod = (SELECT TOP 1 codigo FROM matricula ORDER BY codigo ASC) + 1
-	END
-	RETURN @cod
-END
-*/
+
 -- Procedimento Gerar matricula de um aluno
 -----------------------------------------------------------------------------------
 
-DECLARE @codigomatricula INT
-EXEC sp_gerarmatricula '52169314814', @codigomatricula OUTPUT
-PRINT @codigomatricula
-
-
 -- Início da procedure
-CREATE PROCEDURE sp_gerarmatricula(@cpf CHAR(11))
+CREATE PROCEDURE sp_gerarmatricula(@ra CHAR(9), @codigomatricula INT OUTPUT)
 AS
 BEGIN
-	DECLARE @codigomatricula INT
+	DECLARE @cont INT
+	DECLARE @novocodigo INT = 0
 
-	INSERT INTO matricula VALUES
-	(@codigomatricula, @cpf)
-	
-	SELECT @codigomatricula = codigo FROM matricula WHERE aluno_cpf = @cpf
+	SELECT @cont = COUNT(*)
+	FROM matricula
+	WHERE aluno_ra = @ra
 
-	INSERT INTO matricula_disciplina (codigo_matricula, codigo_disciplina, situacao)
-	SELECT * FROM dbo.fn_matriculainicial(@codigomatricula)
+	IF(@cont >= 1) -- Caso o aluno já seja matriculado
+	BEGIN
+		-- Pego o código da ultima matricula realizada pelo aluno
+		SELECT TOP 1 @codigomatricula = codigo 
+		FROM matricula WHERE aluno_ra = @ra 
+		ORDER BY codigo DESC
+
+		-- Insiro o aluno em uma nova matricula
+		SELECT TOP 1 @novocodigo = codigo + 1
+		FROM matricula
+		ORDER BY codigo DESC
+
+		INSERT INTO matricula VALUES
+		(@novocodigo, @ra)
+
+		-- Como a lógica para atualização da matricula será realizada por outra procedure,
+		-- eu apenas reinsiro a ultima matricula feita pelo aluno
+		INSERT INTO matricula_disciplina
+		SELECT @novocodigo, codigo_disciplina, situacao FROM dbo.fn_ultimamatricula(@codigomatricula)
+	END
+	ELSE -- A primeira matricula do aluno
+	BEGIN
+		IF NOT EXISTS(SELECT * FROM matricula) --Se nenhuma outra matrícula existir (garante que o primeiro aluno a ser inserido 
+		BEGIN
+			SET @codigomatricula = 1000001
+		END
+		ELSE
+		BEGIN
+			SELECT TOP 1 @codigomatricula = codigo + 1
+			FROM matricula
+			ORDER BY codigo DESC
+		END
+
+		INSERT INTO matricula VALUES
+		(@codigomatricula, @ra)
+
+		INSERT INTO matricula_disciplina (codigo_matricula, codigo_disciplina, situacao)
+		SELECT * FROM dbo.fn_matriculainicial(@codigomatricula)
+	END
 END
 -- Fim da procedure
-
--- Inicio da função
-CREATE FUNCTION fn_matriculainicial(@codigomatricula INT)
-RETURNS @tabela TABLE(
-codigo_matricula INT,
-codigo_disciplina INT,
-situacao VARCHAR(50)
-)
-AS
-BEGIN
-	INSERT INTO @tabela (codigo_matricula, codigo_disciplina, situacao)
-	SELECT m.codigo, d.codigo, 'Não cursado' AS situacao
-	FROM matricula m, curso c, disciplina d, aluno a
-	WHERE d.curso_codigo = c.codigo
-		AND a.curso_codigo = c.codigo
-		AND m.codigo = @codigomatricula
-		RETURN
-END
 
 -- Fim da função
 
 -- Procedure de verificação de conflito de horarios em uma matricula
 ------------------------------------------------------------------------
 
+-- Início da procedure
 CREATE PROCEDURE sp_verificarconflitohorario(@codigomatricula INT, @horarioinicio TIME, @qtdaulas INT, @diasemana VARCHAR(50), @conflito BIT OUTPUT)
 AS
 DECLARE @conflitoexiste INT,
@@ -555,16 +567,9 @@ ELSE
 BEGIN
 	SET @conflito = 0
 END
+-- Fim da procedure
 
-DECLARE @conflito BIT
-EXEC sp_verificarconflitohorario 1000001, '13:00', 4, 'Segunda', @conflito OUTPUT
-PRINT @conflito
 
-SELECT * FROM matricula_disciplina WHERE codigo_matricula = 1000001
-
-UPDATE matricula_disciplina
-SET situacao = 'Em curso'
-WHERE codigo_disciplina = 1001
 
 -- Procedure Conteudo
 -------------------------------------------------------------------------
@@ -596,6 +601,46 @@ END
 ELSE
 BEGIN
 	RAISERROR('Operação inválida', 16, 1)
+END
+
+-- IND02 - User Defined Functions
+---------------------------------------------------------------------------
+
+-- Função Matrícula Inicial: Retorna uma tabela com todas as disciplinas determinadas como não cursadas
+--------------------------------------------------------------------------
+CREATE FUNCTION fn_matriculainicial(@codigomatricula INT)
+RETURNS @tabela TABLE(
+codigo_matricula INT,
+codigo_disciplina INT,
+situacao VARCHAR(50)
+)
+AS
+BEGIN
+	INSERT INTO @tabela (codigo_matricula, codigo_disciplina, situacao)
+	SELECT @codigomatricula, d.codigo, 'Não cursado' AS situacao
+	FROM matricula m, curso c, disciplina d, aluno a
+	WHERE d.curso_codigo = c.codigo
+		AND a.curso_codigo = c.codigo
+		AND m.codigo = @codigomatricula
+	RETURN
+END
+
+-- Função Ultima Matrícula: Retorna uma tabela com a ultima matricula feita por um aluno
+------------------------------------------------------------------------
+CREATE FUNCTION fn_ultimamatricula(@codigomatricula INT)
+RETURNS @tabela TABLE(
+codigo_matricula INT,
+codigo_disciplina INT,
+situacao VARCHAR(50)
+)
+AS
+BEGIN
+	INSERT INTO @tabela (codigo_matricula, codigo_disciplina, situacao)
+	SELECT @codigomatricula AS codigo_matricula, md.codigo_disciplina, md.situacao 
+	FROM matricula_disciplina md, matricula m
+	WHERE md.codigo_matricula = @codigomatricula	
+		AND m.codigo = @codigomatricula
+	RETURN
 END
 
 -- View Alunos
@@ -633,8 +678,40 @@ WHERE c.codigo_disciplina = d.codigo
 
 SELECT * FROM v_conteudos
 
--- Testes
+-- IND04 - Inserções para teste
 --------------------------------------------------------------------------------------
+
+delete aluno
+delete matricula
+delete matricula_disciplina
+
+SELECT * FROM aluno
+SELECT * FROM matricula
+SELECT * FROM matricula_disciplina 
+
+DECLARE @saida VARCHAR(200)
+EXEC sp_iudaluno 'I', '52169314814', 0, 'fulano', 'fulano', '2000-01-01', 'fulano@email.com', 'fulano@email.com', '2000-01-01', 'instituicao', 800, 10, '2002', '1', '20051', '0', 101, @saida OUTPUT
+PRINT @saida
+
+DECLARE @conflito BIT
+EXEC sp_verificarconflitohorario 1000001, '13:00', 4, 'Segunda', @conflito OUTPUT
+PRINT @conflito
+
+UPDATE matricula_disciplina
+SET situacao = 'Em curso'
+WHERE codigo_matricula = 1000001
+	AND codigo_disciplina = 1003
+
+
+DECLARE @codigomatricula INT
+EXEC sp_gerarmatricula '200211566', @codigomatricula OUTPUT
+PRINT @codigomatricula
+
+SELECT * FROM matricula_disciplina WHERE codigo_matricula = 1000001
+
+UPDATE matricula_disciplina
+SET situacao = 'Em curso'
+WHERE codigo_disciplina = 1001
 
 select * from curso
 select * from curso c, disciplina d where d.curso_codigo = c.codigo

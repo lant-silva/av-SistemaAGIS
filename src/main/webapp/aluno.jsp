@@ -30,7 +30,7 @@
 					<tr />
 					<tr>
 						<td colspan="3"><input class="input_data" type="number"
-							id="ra" name="ra" placeholder="RA" disabled
+							id="ra" name="ra" placeholder="RA"
 							value='<c:out value="${aluno.ra}"></c:out>'>
 						<td />
 					<tr />
