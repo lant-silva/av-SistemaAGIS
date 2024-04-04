@@ -20,12 +20,12 @@ public class MatriculaDisciplinaDao implements IDisciplina{
 	}
 
 	@Override
-	public String inserirMatricula(int codigoMatricula, int codigoDisciplina, String cpf) throws SQLException, ClassNotFoundException {
+	public String inserirMatricula(String ra, int codigoMatricula, int codigoDisciplina) throws SQLException, ClassNotFoundException {
 		Connection c = gDao.getConnection();
 		String sql = "CALL sp_inserirmatricula(?,?,?)";
 		CallableStatement cs = c.prepareCall(sql);
-		cs.setInt(1, codigoDisciplina);
-		cs.setString(2, cpf);
+		cs.setString(1, ra);
+		cs.setInt(2, codigoDisciplina);
 		cs.registerOutParameter(3, Types.VARCHAR);
 		cs.execute();
 		String saida = cs.getString(3);
@@ -35,21 +35,16 @@ public class MatriculaDisciplinaDao implements IDisciplina{
 	}
 
 	@Override
-	public List<MatriculaDisciplinas> listarSituacao(String alunoCpf)
+	public List<MatriculaDisciplinas> listarSituacao(String alunoRa)
 			throws SQLException, ClassNotFoundException {
 		List<MatriculaDisciplinas> ms = new ArrayList<>();
 		Connection c = gDao.getConnection();
-		String sql = "SELECT TOP 1 md.codigo_matricula AS codigo_matricula, d.codigo AS codigo, d.nome AS nome, d.qtd_aulas AS qtd_aulas,"
-				+ " d.horario AS horario, d.dia AS dia, md.situacao AS situacao, d.curso_codigo AS curso_codigo"
-				+ "	FROM matricula_disciplina md, disciplina d, aluno a, matricula m"
-				+ "	WHERE m.codigo = md.codigo_matricula"
-				+ "	AND d.codigo = md.codigo_disciplina"
-				+ "	AND m.aluno_cpf = ? "
-				+ " ORDER BY codigo_matricula DESC";
+		String sql = "SELECT * FROM dbo.fn_listarultimamatricula(?)";
 		PreparedStatement ps = c.prepareStatement(sql);
-		ps.setString(1, alunoCpf);
+		ps.setString(1, alunoRa);
 		ResultSet rs = ps.executeQuery();
 		while(rs.next()) {
+			System.out.println(rs.getInt("codigo_matricula"));
 			MatriculaDisciplinas m = new MatriculaDisciplinas();
 			Disciplina d = new Disciplina();
 			d.setCodigo(rs.getInt("codigo"));
@@ -63,24 +58,24 @@ public class MatriculaDisciplinaDao implements IDisciplina{
 			m.setSituacao(rs.getString("situacao"));
 			ms.add(m);
 		}
-		rs.close();
+		
 		ps.close();
 		c.close();
 		return ms;
 	}
 
 	@Override
-	public String gerarMatricula(String alunoCpf) throws SQLException, ClassNotFoundException {
+	public String gerarMatricula(String alunoRa) throws SQLException, ClassNotFoundException {
 		Connection c = gDao.getConnection();
 		String sql = "CALL sp_gerarmatricula (?,?)";
 		CallableStatement cs = c.prepareCall(sql);
-		cs.setString(1, alunoCpf);
-		cs.registerOutParameter(2, Types.VARCHAR);
+		cs.setString(1, alunoRa);
+		cs.registerOutParameter(2, Types.INTEGER);
 		cs.execute();
-		String saida = cs.getString(2);
+		String saida = Integer.toString(cs.getInt(2));
 		cs.close();
 		c.close();
 		return saida;
-	}
+	}	
 
 }
