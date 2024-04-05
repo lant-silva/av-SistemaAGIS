@@ -213,6 +213,10 @@
 							<td><c:out value="${a.nome}" /></td>
 							<td><c:out value="${a.nomeSocial}" /></td>
 							<td><c:out value="${a.dataNasc}" /></td>
+							<td>
+                                <button onclick="window.location.href='listaTelefone?aluno=${a.cpf}'">Telefones</button>
+
+                            </td>
 							<td><c:out value="${a.emailPessoal}" /></td>
 							<td><c:out value="${a.emailCorporativo}" /></td>
 							<td><c:out value="${a.dataSegundoGrau}" /></td>

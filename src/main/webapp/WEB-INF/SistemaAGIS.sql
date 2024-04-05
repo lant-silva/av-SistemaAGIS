@@ -264,6 +264,7 @@ BEGIN
 	RETURN
 END	
 
+
 -- Validar Idade
 
 EXEC sp_validaridade @datanasc, @idadevalida OUTPUT 
@@ -337,6 +338,67 @@ BEGIN
 END
 
 -- Fim da procedure
+
+-- Procedure do aluno_telefone
+------------------------------------------------------------------------------------
+CREATE PROCEDURE sp_iud_aluno_telefone
+    @acao CHAR(1),
+    @telefone CHAR(11),
+    @aluno_ra CHAR(9),
+    @saida VARCHAR(100) OUTPUT
+AS
+BEGIN 
+    IF (@acao = 'I')
+    BEGIN
+        -- Verifica se o telefone já está cadastrado para o aluno
+        IF EXISTS (SELECT 1 FROM aluno_telefone WHERE telefone = @telefone AND aluno_ra = @aluno_ra)
+        BEGIN
+            SET @saida = 'Telefone já cadastrado para o aluno'
+            RETURN
+        END
+
+        -- Insere o telefone do aluno
+        INSERT INTO aluno_telefone (telefone, aluno_ra)
+        VALUES (@telefone, @aluno_ra)
+        SET @saida = 'Telefone cadastrado para o aluno com sucesso'
+    END
+    ELSE IF (@acao = 'U')
+    BEGIN
+        -- Verifica se o telefone existe para o aluno
+        IF NOT EXISTS (SELECT 1 FROM aluno_telefone WHERE telefone = @telefone AND aluno_ra = @aluno_ra)
+        BEGIN
+            SET @saida = 'Telefone não encontrado para o aluno'
+            RETURN
+        END
+		 
+        -- Atualiza o telefone do aluno
+        UPDATE aluno_telefone
+        SET telefone = @telefone
+        WHERE aluno_ra = @aluno_ra
+        SET @saida = 'Telefone do aluno atualizado com sucesso'
+    END
+    ELSE IF (@acao = 'D')
+    BEGIN
+        -- Verifica se o telefone existe para o aluno
+        IF NOT EXISTS (SELECT 1 FROM aluno_telefone WHERE telefone = @telefone AND aluno_ra = @aluno_ra)
+        BEGIN
+            SET @saida = 'Telefone não encontrado para o aluno'
+            RETURN
+        END
+
+        -- Exclui o telefone do aluno
+        DELETE FROM aluno_telefone
+        WHERE telefone = @telefone AND aluno_ra = @aluno_ra
+        SET @saida = 'Telefone do aluno excluído com sucesso'
+    END
+    ELSE
+    BEGIN
+        RAISERROR('Operação inválida', 16, 1)
+        RETURN
+    END
+END
+--fim da procedure
+------------------------------------------------------------------------------------------
 
 -- Procedure IUD Matrícula 
 ------------------------------------------------------------------------
@@ -726,7 +788,7 @@ INSERT INTO conteudo VALUES
 
 
 '
-
+teste
 SELECT d.nome, d.qtd_aulas, CONVERT(varchar, d.horario, 8) AS horario, d.dia
 FROM disciplina d, curso c
 WHERE d.curso_codigo = c.codigo
