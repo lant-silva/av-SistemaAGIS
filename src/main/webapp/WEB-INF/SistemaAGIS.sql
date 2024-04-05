@@ -507,8 +507,13 @@ DECLARE @saida VARCHAR(200)
 EXEC sp_inserirmatricula '52169314814', 1000001, 1001, @saida OUTPUT
 PRINT @saida
 
+<<<<<<< HEAD
 -- Início da procedure
 CREATE PROCEDURE sp_inserirmatricula(@ra CHAR(9), @codigomatricula INT, @codigodisciplina INT, @saida VARCHAR(200) OUTPUT)
+=======
+-- InÃ­cio da procedure
+CREATE PROCEDURE sp_inserirmatricula(@ra CHAR(9), @codigomatricula INT, @codigodisciplina INT OUTPUT, @saida VARCHAR(200) OUTPUT)
+>>>>>>> branch 'master' of git@github.com:lant-silva/av-SistemaAGIS.git
 AS
 DECLARE @conflito BIT,
 		@qtdaula INT,
@@ -516,12 +521,13 @@ DECLARE @conflito BIT,
 		@diasemana VARCHAR(50)
 
 
-SELECT TOP 1 @codigomatricula = m.codigo, @qtdaula = d.qtd_aulas, @horario = d.horario, @diasemana = d.dia
+SELECT @qtdaula = d.qtd_aulas, @horario = d.horario, @diasemana = d.dia
 FROM disciplina d, matricula_disciplina md, matricula m
 WHERE d.codigo = md.codigo_disciplina
 	AND md.codigo_matricula = m.codigo
+	AND m.codigo = @codigomatricula
 	AND m.aluno_ra = @ra
-ORDER BY m.codigo DESC
+
 
 EXEC sp_verificarconflitohorario @codigomatricula, @horario, @qtdaula, @diasemana, @conflito OUTPUT
 
@@ -531,10 +537,18 @@ BEGIN
 	SET situacao = 'Em curso'
 	WHERE codigo_matricula = @codigomatricula 
 		AND codigo_disciplina = @codigodisciplina
+	SET @saida = 'Matricula finalizada.'
 END
 ELSE
 BEGIN
+<<<<<<< HEAD
 	RAISERROR('Matricula cancelada: Existe conflito de horários', 16, 1)
+=======
+	DELETE matricula
+	WHERE codigo = @codigomatricula
+
+	RAISERROR('Matricula cancelada: Existe conflito de horÃ¡rios', 16, 1)
+>>>>>>> branch 'master' of git@github.com:lant-silva/av-SistemaAGIS.git
 	RETURN
 END
 -- Fim da procedure
@@ -555,11 +569,14 @@ BEGIN
 
 	IF(@cont >= 1) -- Caso o aluno já seja matriculado
 	BEGIN
+<<<<<<< HEAD
 		-- Pego o código da ultima matricula realizada pelo aluno
 		SELECT TOP 1 @codigomatricula = codigo 
 		FROM matricula WHERE aluno_ra = @ra 
 		ORDER BY codigo DESC
 
+=======
+>>>>>>> branch 'master' of git@github.com:lant-silva/av-SistemaAGIS.git
 		-- Insiro o aluno em uma nova matricula
 		SELECT TOP 1 @novocodigo = codigo + 1
 		FROM matricula
@@ -571,7 +588,10 @@ BEGIN
 		-- Como a lógica para atualização da matricula será realizada por outra procedure,
 		-- eu apenas reinsiro a ultima matricula feita pelo aluno
 		INSERT INTO matricula_disciplina
-		SELECT @novocodigo, codigo_disciplina, situacao FROM dbo.fn_ultimamatricula(@codigomatricula)
+		SELECT codigo_matricula, codigo_disciplina, situacao FROM dbo.fn_ultimamatricula(@ra)
+
+		SELECT @codigomatricula = codigo_matricula FROM dbo.fn_ultimamatricula(@ra)
+
 	END
 	ELSE -- A primeira matricula do aluno
 	BEGIN
@@ -595,9 +615,13 @@ BEGIN
 END
 -- Fim da procedure
 
+<<<<<<< HEAD
 -- Fim da função
 
 -- Procedure de verificação de conflito de horarios em uma matricula
+=======
+-- Procedure de verificaÃ§Ã£o de conflito de horarios em uma matricula
+>>>>>>> branch 'master' of git@github.com:lant-silva/av-SistemaAGIS.git
 ------------------------------------------------------------------------
 
 -- Início da procedure
@@ -607,7 +631,7 @@ DECLARE @conflitoexiste INT,
 		@horariofim TIME
 
 SET @horariofim = DATEADD(MINUTE, @qtdaulas * 50, @horarioinicio)
-
+PRINT @horariofim
 SELECT @conflitoexiste = COUNT(*)
 FROM matricula_disciplina md, disciplina d
 WHERE md.codigo_matricula = @codigomatricula
@@ -620,7 +644,7 @@ WHERE md.codigo_matricula = @codigomatricula
 
 print @conflitoexiste
 
-IF (@conflitoexiste > 1)
+IF (@conflitoexiste >= 1)
 BEGIN
 	SET @conflito = 1
 END
@@ -628,6 +652,8 @@ ELSE
 BEGIN
 	SET @conflito = 0
 END
+
+
 -- Fim da procedure
 
 
@@ -688,7 +714,7 @@ END
 
 -- Função Ultima Matrícula: Retorna uma tabela com a ultima matricula feita por um aluno
 ------------------------------------------------------------------------
-CREATE FUNCTION fn_ultimamatricula(@codigomatricula INT)
+CREATE FUNCTION fn_ultimamatricula(@ra CHAR(9))
 RETURNS @tabela TABLE(
 codigo_matricula INT,
 codigo_disciplina INT,
@@ -696,14 +722,57 @@ situacao VARCHAR(50)
 )
 AS
 BEGIN
+	DECLARE @codigomatricula INT
+
+	SELECT TOP 1 @codigomatricula = codigo 
+	FROM matricula WHERE aluno_ra = @ra 
+	ORDER BY codigo DESC
+
+
 	INSERT INTO @tabela (codigo_matricula, codigo_disciplina, situacao)
 	SELECT @codigomatricula AS codigo_matricula, md.codigo_disciplina, md.situacao 
-	FROM matricula_disciplina md, matricula m
+	FROM matricula_disciplina md, matricula m, aluno a
 	WHERE md.codigo_matricula = @codigomatricula	
 		AND m.codigo = @codigomatricula
+		AND m.aluno_ra = a.ra 
 	RETURN
 END
 
+SELECT * FROM dbo.fn_ultimamatricula(200211566)
+
+-- FunÃ§Ã£o Listar Ultima MatrÃ­cula
+------------------------------------------------------------------------
+CREATE FUNCTION fn_listarultimamatricula(@ra char(9))
+RETURNS @tabela TABLE(
+codigo_matricula INT,
+codigo INT,
+nome VARCHAR(100),
+qtd_aulas INT,
+horario TIME,
+dia VARCHAR(20),
+curso_codigo INT,
+situacao VARCHAR(50)
+)
+AS
+BEGIN
+	DECLARE @codigomatricula INT
+
+	SELECT TOP 1 @codigomatricula = codigo 
+	FROM matricula WHERE aluno_ra = @ra 
+	ORDER BY codigo DESC
+
+	INSERT INTO @tabela (codigo_matricula, codigo, nome, qtd_aulas, horario, dia, curso_codigo, situacao)
+	SELECT CAST(md.codigo_matricula AS VARCHAR), CAST(d.codigo AS VARCHAR),
+		   d.nome, CAST(d.qtd_aulas AS VARCHAR),
+		   d.horario, d.dia AS dia, 
+		   CAST(d.curso_codigo AS VARCHAR), md.situacao
+	FROM matricula_disciplina md, disciplina d, aluno a, matricula m
+	WHERE m.codigo = @codigomatricula
+		AND m.codigo = md.codigo_matricula
+		AND d.codigo = md.codigo_disciplina
+		AND m.aluno_ra = @ra
+	RETURN
+END
 -- View Alunos
 --------------------------------------------------------------------------
 
@@ -744,24 +813,32 @@ SELECT * FROM v_conteudos
 
 delete aluno
 delete matricula
+where codigo = 1000002
+
 delete matricula_disciplina
 
 SELECT * FROM aluno
 SELECT * FROM matricula
 SELECT * FROM matricula_disciplina 
 
+
+
 DECLARE @saida VARCHAR(200)
 EXEC sp_iudaluno 'I', '52169314814', 0, 'fulano', 'fulano', '2000-01-01', 'fulano@email.com', 'fulano@email.com', '2000-01-01', 'instituicao', 800, 10, '2002', '1', '20051', '0', 101, @saida OUTPUT
 PRINT @saida
 
 DECLARE @conflito BIT
-EXEC sp_verificarconflitohorario 1000001, '13:00', 4, 'Segunda', @conflito OUTPUT
+EXEC sp_verificarconflitohorario 1000001, '14:50', 4, 'Segunda', @conflito OUTPUT
 PRINT @conflito
 
 UPDATE matricula_disciplina
 SET situacao = 'Em curso'
 WHERE codigo_matricula = 1000001
 	AND codigo_disciplina = 1003
+
+DECLARE @saida VARCHAR(200)
+EXEC sp_inserirmatricula '200218658', 1001, @saida OUTPUT
+PRINT @saida
 
 
 DECLARE @codigomatricula INT

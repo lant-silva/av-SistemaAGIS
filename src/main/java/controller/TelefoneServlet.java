@@ -110,12 +110,12 @@ public class TelefoneServlet extends HttpServlet {
         return null;
     }
 
-    private void cadastrarTelefone(Telefone t) throws ClassNotFoundException, SQLException {
+    private String cadastrarTelefone(Telefone t) throws ClassNotFoundException, SQLException {
         // Método para cadastrar telefone
     	GenericDao gDao = new GenericDao();
     	TelefoneDao pDao = new TelefoneDao (gDao);
-    	pDao.inserir(t);
-    	
+    	String saida = pDao.iud("I", t);
+    	return saida;
     }
 
     private void alterarTelefone (Telefone t) throws ClassNotFoundException, SQLException {
@@ -151,18 +151,6 @@ public class TelefoneServlet extends HttpServlet {
     	return telefones;
     }
     
-    public String iud(String acao, Telefone a) throws SQLException, ClassNotFoundException {
-        String saida = "";
-        GenericDao gDao = new GenericDao();
-        TelefoneDao tDao = new TelefoneDao(gDao);
-
-        try {
-            saida = tDao.iud(acao, a);
-        } catch (SQLException e) {
-            saida = e.getMessage();
-        } finally {
-            return saida;
-        }
-    }
+    
 
 }

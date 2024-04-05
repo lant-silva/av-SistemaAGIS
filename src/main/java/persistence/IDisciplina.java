@@ -7,7 +7,7 @@ import model.Aluno;
 import model.MatriculaDisciplinas;
 
 public interface IDisciplina {
-	public String gerarMatricula(String alunoCpf) throws SQLException, ClassNotFoundException;
-	public String inserirMatricula(int codigoMatricula, int codigoDisciplina, String alunoCpf) throws SQLException, ClassNotFoundException;
-	public List<MatriculaDisciplinas> listarSituacao(String alunoCpf) throws SQLException, ClassNotFoundException;
+	public String gerarMatricula(String alunoRa) throws SQLException, ClassNotFoundException;
+	public String inserirMatricula(String ra, int codigoMatricula, int codigoDisciplina) throws SQLException, ClassNotFoundException;
+	public List<MatriculaDisciplinas> listarSituacao(String alunoRa) throws SQLException, ClassNotFoundException;
 }

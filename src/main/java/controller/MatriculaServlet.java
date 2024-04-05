@@ -7,16 +7,18 @@ import java.util.List;
 
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import model.Aluno;
 import model.Disciplina;
 import model.Matricula;
 import model.MatriculaDisciplinas;
-import persistence.DisciplinaDao;
 import persistence.GenericDao;
 import persistence.MatriculaDisciplinaDao;
 
+@WebServlet("/matricula")
 public class MatriculaServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
@@ -26,6 +28,7 @@ public class MatriculaServlet extends HttpServlet {
     }
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		/*
 		String erro = "";
 		List<Disciplina> disciplinas = new ArrayList<>();
 		
@@ -43,15 +46,15 @@ public class MatriculaServlet extends HttpServlet {
 			request.setAttribute("disciplinas", disciplinas);
 		}
 		
+		 */
 		RequestDispatcher rd = request.getRequestDispatcher("matricula.jsp");
 		rd.forward(request, response);
-		
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// Entrada
 		String cmd = request.getParameter("botao");
-		String cpf = request.getParameter("cpf");
+		String ra = request.getParameter("ra");
 		String[] disciplinasSelecionadas = request.getParameterValues("disciplinasSelecionadas");
 		if(disciplinasSelecionadas != null) {
 			for(String str : disciplinasSelecionadas) {			
@@ -63,15 +66,17 @@ public class MatriculaServlet extends HttpServlet {
 		String saida="";
 		String erro="";
 		Matricula matricula = new Matricula();
+		Aluno a = new Aluno();
 		List<Disciplina> disciplinas = new ArrayList<>();
 		List<MatriculaDisciplinas> matriculaDisciplinas = new ArrayList<>();
 		
 		try {
 			if(cmd.contains("Iniciar Matricula")) {
-				matriculaDisciplinas = listarDisciplinas(cpf);
+				a.setRa(ra);
+				matriculaDisciplinas = listarDisciplinas(ra);
 			}
 			if(cmd.contains("Confirmar Matricula")) {
-				inserirMatricula(disciplinasSelecionadas, cpf);
+				inserirMatricula(disciplinasSelecionadas, ra);
 				saida = "Matricula finalizada";
 			}
 		} catch (SQLException | ClassNotFoundException e) {		
@@ -80,6 +85,7 @@ public class MatriculaServlet extends HttpServlet {
 			request.setAttribute("saida", saida);
 			request.setAttribute("erro", erro);
 			request.setAttribute("disciplinas", matriculaDisciplinas);
+			request.setAttribute("aluno", a);
 			
 			RequestDispatcher rd = request.getRequestDispatcher("matricula.jsp");
 			rd.forward(request, response);
@@ -99,9 +105,10 @@ public class MatriculaServlet extends HttpServlet {
 		GenericDao gDao = new GenericDao();
 		MatriculaDisciplinaDao mdDao = new MatriculaDisciplinaDao(gDao);
 		String codigoMatricula = mdDao.gerarMatricula(ra);
+		System.out.println(codigoMatricula);
 		String saida = null;
 		for(String str : disciplinasSelecionadas) {
-			saida = mdDao.inserirMatricula(Integer.parseInt(codigoMatricula), Integer.parseInt(str), ra);
+			saida = mdDao.inserirMatricula(ra, Integer.parseInt(codigoMatricula), Integer.parseInt(str));
 		}
 		return saida;
 	}
@@ -122,4 +129,5 @@ public class MatriculaServlet extends HttpServlet {
 		md = mdDao.listarSituacao(alunoCpf);
 		return md;
 	}
+
 }

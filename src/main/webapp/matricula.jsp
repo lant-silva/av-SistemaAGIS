@@ -18,8 +18,8 @@
 	<form action="matricula" method="post">
 		<div align="center" class="container">
 			<tr>
-				<td colspan="3"><input class="input_data" type="text" id="cpf"
-					name="cpf" placeholder="CPF" value='' maxlength="11"
+				<td colspan="3"><input class="input_data" type="text" id="ra"
+					name="ra" placeholder="R.A" value="${aluno.ra }" maxlength="9"
 					oninput="this.value = this.value.replace(/[^0-9]/g, '')">
 				<td />
 				<td><input type="submit" id="botao" name="botao"
