@@ -8,15 +8,15 @@ USE agis
  Banco de Dados - Sistema AGIS
  Todas as queries SQL do sistema
 
- √çNDICE:
- IND00 - Cria√ß√£o de Tabelas
+ ÕNDICE:
+ IND00 - CriaÁ„o de Tabelas
  IND01 - Stored Procedures
  IND02 - User Defined Functions
  IND03 - Views
- IND04 - Inser√ß√µes para teste
+ IND04 - InserÁıes para teste
 
 */
---  IND00 - Cria√ß√£o de Tabelas
+--  IND00 - CriaÁ„o de Tabelas
 -------------------------------------------------------------------------------
 
 CREATE TABLE aluno(
@@ -95,10 +95,10 @@ FOREIGN KEY(codigo_matricula) REFERENCES matricula(codigo)
 -- IND01 - Stored Procedures
 ---------------------------------------------------------------------------------
 
--- Procedure de valida√ß√£o do cpf
+-- Procedure de validaÁ„o do cpf
 ---------------------------------------------------------------------------------
 
--- In√≠cio da procedure
+-- InÌcio da procedure
 CREATE PROCEDURE sp_validarcpf(@cpf CHAR(11), @valido BIT OUTPUT)
 AS
 DECLARE @soma1 INT,
@@ -114,7 +114,7 @@ SET @soma2 = 0
 IF LEN(@cpf) <> 11
 BEGIN
 	SET @valido = 0
-	RAISERROR('CPF Inv√°lido', 16, 1)
+	RAISERROR('CPF Inv·lido', 16, 1)
 END
 
 WHILE(@cont <= 9)	
@@ -154,10 +154,10 @@ BEGIN
 	SET @valido = 0
 END
 
--- Procedure de valida√ß√£o da idade
+-- Procedure de validaÁ„o da idade
 ------------------------------------------------------------------------------------
 
--- In√≠cio da procedure
+-- InÌcio da procedure
 CREATE PROCEDURE sp_validaridade(@dtnasc DATE, @valido BIT OUTPUT)
 AS
 IF(DATEDIFF(YEAR,@dtnasc,GETDATE()) < 16)
@@ -170,10 +170,71 @@ BEGIN
 END
 -- Fim da procedure
 
--- Procedure de gera√ß√£o do RA
+-- Procedure do aluno_telefone
+------------------------------------------------------------------------------------
+CREATE PROCEDURE sp_iud_aluno_telefone
+    @acao CHAR(1),
+    @telefone CHAR(11),
+    @aluno_ra CHAR(9),
+    @saida VARCHAR(100) OUTPUT
+AS
+BEGIN
+    IF (@acao = 'I')
+    BEGIN
+        -- Verifica se o telefone j· est· cadastrado para o aluno
+        IF EXISTS (SELECT 1 FROM aluno_telefone WHERE telefone = @telefone AND aluno_ra = @aluno_ra)
+        BEGIN
+            SET @saida = 'Telefone j· cadastrado para o aluno'
+            RETURN
+        END
+
+        -- Insere o telefone do aluno
+        INSERT INTO aluno_telefone (telefone, aluno_ra)
+        VALUES (@telefone, @aluno_ra)
+        SET @saida = 'Telefone cadastrado para o aluno com sucesso'
+    END
+    ELSE IF (@acao = 'U')
+    BEGIN
+        -- Verifica se o telefone existe para o aluno
+        IF NOT EXISTS (SELECT 1 FROM aluno_telefone WHERE telefone = @telefone AND aluno_ra = @aluno_ra)
+        BEGIN
+            SET @saida = 'Telefone n„o encontrado para o aluno'
+            RETURN
+        END
+
+        -- Atualiza o telefone do aluno
+        UPDATE aluno_telefone
+        SET telefone = @telefone
+        WHERE aluno_ra = @aluno_ra
+        SET @saida = 'Telefone do aluno atualizado com sucesso'
+    END
+    ELSE IF (@acao = 'D')
+    BEGIN
+        -- Verifica se o telefone existe para o aluno
+        IF NOT EXISTS (SELECT 1 FROM aluno_telefone WHERE telefone = @telefone AND aluno_ra = @aluno_ra)
+        BEGIN
+            SET @saida = 'Telefone n„o encontrado para o aluno'
+            RETURN
+        END
+
+        -- Exclui o telefone do aluno
+        DELETE FROM aluno_telefone
+        WHERE telefone = @telefone AND aluno_ra = @aluno_ra
+        SET @saida = 'Telefone do aluno excluÌdo com sucesso'
+    END
+    ELSE
+    BEGIN
+        RAISERROR('OperaÁ„o inv·lida', 16, 1)
+        RETURN
+    END
+END
+--fim da procedure
 --------------------------------------------------------------------------------------------
 
--- In√≠cio da procedure
+-- Procedure de geraÁ„o do RA
+--------------------------------------------------------------------------------------------
+
+-- InÌcio da procedure
 CREATE PROCEDURE sp_gerarra(@ano CHAR(4), @sem CHAR(1), @ra CHAR(9) OUTPUT)
 AS
 
@@ -187,7 +248,7 @@ BEGIN
 	
 	SET @ra = @ano + @sem + @n1 + @n2 + @n3 + @n4
 	
-	-- Verifica se o RA gerado j√° pertence a um aluno, caso contr√°rio, outro RA vai ser gerado
+	-- Verifica se o RA gerado j· pertence a um aluno, caso contr·rio, outro RA vai ser gerado
 	IF EXISTS(SELECT ra FROM aluno WHERE ra = @ra)
 	BEGIN 
 		SET @existe = 1
@@ -198,10 +259,10 @@ BEGIN
 	END
 END
 
--- Procedure de gera√ß√£o do Ano e Semestre limite
+-- Procedure de geraÁ„o do Ano e Semestre limite
 ----------------------------------------------------------------------------------------------
 
--- In√≠cio da procedure
+-- InÌcio da procedure
 CREATE PROCEDURE sp_geraranolimite(@ano CHAR(4), @sem CHAR(1), @anolimite CHAR(6) OUTPUT)
 AS
 BEGIN
@@ -221,7 +282,7 @@ END
 -- Procedure IUD Aluno
 ----------------------------------------------------------------------------------------------
 
--- In√≠cio da procedure
+-- InÌcio da procedure
 CREATE PROCEDURE sp_iudaluno(@acao CHAR(1),
 				 		     @cpf CHAR(11),
 				 			 @ra CHAR(9) OUTPUT,
@@ -251,7 +312,7 @@ EXEC sp_validarcpf @cpf, @cpfvalido OUTPUT
 PRINT @cpfvalido
 IF(@cpfvalido = 0)
 BEGIN 
-	RAISERROR('CPF inv√°lido', 16, 1)
+	RAISERROR('CPF inv·lido', 16, 1)
 	RETURN
 END
 
@@ -261,7 +322,7 @@ EXEC sp_validaridade @datanasc, @idadevalida OUTPUT
 PRINT @idadevalida
 IF(@idadevalida = 0)
 BEGIN 
-	RAISERROR('Idade inv√°lida', 16 ,1)
+	RAISERROR('Idade inv·lida', 16 ,1)
 	RETURN
 END
 
@@ -323,7 +384,7 @@ BEGIN
 	SET @saida = 'Aluno atualizado'
 END
 /*
- Marcado para remo√ß√£o (Exclus√£o do aluno √© desnecess√°ria para o funcionamento do sistema)
+ Marcado para remoÁ„o (Exclus„o do aluno È desnecess·ria para o funcionamento do sistema)
 ELSE 
 IF(UPPER(@acao) = 'D')	
 BEGIN
@@ -352,17 +413,17 @@ END
 -- Procedure IUD Cursos
 --------------------------------------------------------------------------
 
--- In√≠cio da procedure
+-- InÌcio da procedure
 CREATE PROCEDURE sp_iudcurso(@acao CHAR(1), @codigo INT, @nome VARCHAR(100), @cargahoraria INT, @sigla VARCHAR(10), @notaenade INT, @saida VARCHAR(300) OUTPUT)
 AS
-IF(UPPER(@acao) = 'I') --Opera√ß√£o de inser√ß√£o
+IF(UPPER(@acao) = 'I') --OperaÁ„o de inserÁ„o
 BEGIN
 	INSERT INTO curso (codigo, nome, carga_horaria, sigla, nota_enade) VALUES
 	(@codigo, @nome, @cargahoraria, @sigla, @notaenade)
 	SET @saida = 'Curso inserido'
 END
 ELSE 
-IF(UPPER(@acao) = 'U') --Opera√ß√£o de atualiza√ß√£o
+IF(UPPER(@acao) = 'U') --OperaÁ„o de atualizaÁ„o
 BEGIN 
 	UPDATE curso
 	SET nome = @nome, carga_horaria = @cargahoraria, sigla = @sigla, nota_enade = @notaenade
@@ -370,7 +431,7 @@ BEGIN
 	SET @saida = 'Curso alterado'
 END
 ELSE 
-IF(UPPER(@acao) = 'D') --Opera√ß√£o de exclus√£o
+IF(UPPER(@acao) = 'D') --OperaÁ„o de exclus„o
 BEGIN 
 	DELETE curso
 	WHERE codigo = @codigo
@@ -378,11 +439,11 @@ BEGIN
 END
 ELSE 
 BEGIN 
-	RAISERROR('Opera√ß√£o inv√°lida', 16, 1)
+	RAISERROR('OperaÁ„o inv·lida', 16, 1)
 END
 
 DECLARE @saida VARCHAR(300)
-EXEC sp_iudcurso 'I', 101, 'An√°lise e Desenvolvimento de Sistemas', 2800, 'ADS', 5, @saida OUTPUT
+EXEC sp_iudcurso 'I', 101, 'An·lise e Desenvolvimento de Sistemas', 2800, 'ADS', 5, @saida OUTPUT
 PRINT @saida
 
 SELECT * FROM curso
@@ -390,16 +451,16 @@ SELECT * FROM curso
 -- Procedure IUD Disciplina
 ----------------------------------------------------------------------------------------------
 
--- In√≠cio da procedure
+-- InÌcio da procedure
 CREATE PROCEDURE sp_iuddisciplina (@acao CHAR(1), @codigo INT, @nome VARCHAR(100), @qtdaulas INT, @horario TIME, @diasemana VARCHAR(20), @cursocodigo INT, @saida VARCHAR(200) OUTPUT)
 AS
-IF(UPPER(@acao) = 'I') --Opera√ß√£o de inser√ß√£o
+IF(UPPER(@acao) = 'I') --OperaÁ„o de inserÁ„o
 BEGIN
 	
-	--Verificar se a disciplina n√£o √© duplicada com outro curso
+	--Verificar se a disciplina n„o È duplicada com outro curso
 	IF EXISTS(SELECT curso_codigo FROM disciplina WHERE curso_codigo = @cursocodigo AND nome = @nome)
 	BEGIN
-		RAISERROR('A disciplina j√° existe em um curso, remova a disciplina desse curso ou crie uma semelhante.', 16, 1)
+		RAISERROR('A disciplina j· existe em um curso, remova a disciplina desse curso ou crie uma semelhante.', 16, 1)
 		RETURN
 	END
 	ELSE
@@ -410,12 +471,12 @@ BEGIN
 	END
 END
 ELSE
-IF(UPPER(@acao) = 'U') --Opera√ß√£o de atualiza√ß√£o
+IF(UPPER(@acao) = 'U') --OperaÁ„o de atualizaÁ„o
 BEGIN
-	--Verificar se a disciplina n√£o √© duplicada com outro curso
+	--Verificar se a disciplina n„o È duplicada com outro curso
 	IF EXISTS(SELECT curso_codigo FROM disciplina WHERE curso_codigo = @cursocodigo AND nome = @nome)
 	BEGIN
-		RAISERROR('A disciplina j√° existe em um curso, remova a disciplina desse curso ou crie uma semelhante.', 16, 1)
+		RAISERROR('A disciplina j· existe em um curso, remova a disciplina desse curso ou crie uma semelhante.', 16, 1)
 		RETURN
 	END
 	ELSE
@@ -427,7 +488,7 @@ BEGIN
 	END
 END
 ELSE
-IF(UPPER(@acao) = 'D') --Opera√ß√£o de exclus√£o
+IF(UPPER(@acao) = 'D') --OperaÁ„o de exclus„o
 BEGIN
 	DELETE disciplina
 	WHERE codigo = @codigo
@@ -435,18 +496,18 @@ BEGIN
 END
 ELSE
 BEGIN
-	RAISERROR('Opera√ß√£o inv√°lida', 16, 1)
+	RAISERROR('OperaÁ„o inv·lida', 16, 1)
 END
 -- Fim da procedure
 
--- Procedure IUD Matr√≠cula 
+-- Procedure IUD MatrÌcula 
 ------------------------------------------------------------------------
 
 DECLARE @saida VARCHAR(200)
 EXEC sp_inserirmatricula '52169314814', 1000001, 1001, @saida OUTPUT
 PRINT @saida
 
--- In√≠cio da procedure
+-- InÌcio da procedure
 CREATE PROCEDURE sp_inserirmatricula(@ra CHAR(9), @codigomatricula INT, @codigodisciplina INT, @saida VARCHAR(200) OUTPUT)
 AS
 DECLARE @conflito BIT,
@@ -473,7 +534,7 @@ BEGIN
 END
 ELSE
 BEGIN
-	RAISERROR('Matricula cancelada: Existe conflito de hor√°rios', 16, 1)
+	RAISERROR('Matricula cancelada: Existe conflito de hor·rios', 16, 1)
 	RETURN
 END
 -- Fim da procedure
@@ -481,7 +542,7 @@ END
 -- Procedimento Gerar matricula de um aluno
 -----------------------------------------------------------------------------------
 
--- In√≠cio da procedure
+-- InÌcio da procedure
 CREATE PROCEDURE sp_gerarmatricula(@ra CHAR(9), @codigomatricula INT OUTPUT)
 AS
 BEGIN
@@ -492,9 +553,9 @@ BEGIN
 	FROM matricula
 	WHERE aluno_ra = @ra
 
-	IF(@cont >= 1) -- Caso o aluno j√° seja matriculado
+	IF(@cont >= 1) -- Caso o aluno j· seja matriculado
 	BEGIN
-		-- Pego o c√≥digo da ultima matricula realizada pelo aluno
+		-- Pego o cÛdigo da ultima matricula realizada pelo aluno
 		SELECT TOP 1 @codigomatricula = codigo 
 		FROM matricula WHERE aluno_ra = @ra 
 		ORDER BY codigo DESC
@@ -507,14 +568,14 @@ BEGIN
 		INSERT INTO matricula VALUES
 		(@novocodigo, @ra)
 
-		-- Como a l√≥gica para atualiza√ß√£o da matricula ser√° realizada por outra procedure,
+		-- Como a lÛgica para atualizaÁ„o da matricula ser· realizada por outra procedure,
 		-- eu apenas reinsiro a ultima matricula feita pelo aluno
 		INSERT INTO matricula_disciplina
 		SELECT @novocodigo, codigo_disciplina, situacao FROM dbo.fn_ultimamatricula(@codigomatricula)
 	END
 	ELSE -- A primeira matricula do aluno
 	BEGIN
-		IF NOT EXISTS(SELECT * FROM matricula) --Se nenhuma outra matr√≠cula existir (garante que o primeiro aluno a ser inserido 
+		IF NOT EXISTS(SELECT * FROM matricula) --Se nenhuma outra matrÌcula existir (garante que o primeiro aluno a ser inserido 
 		BEGIN
 			SET @codigomatricula = 1000001
 		END
@@ -534,12 +595,12 @@ BEGIN
 END
 -- Fim da procedure
 
--- Fim da fun√ß√£o
+-- Fim da funÁ„o
 
--- Procedure de verifica√ß√£o de conflito de horarios em uma matricula
+-- Procedure de verificaÁ„o de conflito de horarios em uma matricula
 ------------------------------------------------------------------------
 
--- In√≠cio da procedure
+-- InÌcio da procedure
 CREATE PROCEDURE sp_verificarconflitohorario(@codigomatricula INT, @horarioinicio TIME, @qtdaulas INT, @diasemana VARCHAR(50), @conflito BIT OUTPUT)
 AS
 DECLARE @conflitoexiste INT,
@@ -574,7 +635,7 @@ END
 -- Procedure Conteudo
 -------------------------------------------------------------------------
 
--- In√≠cio da procedure
+-- InÌcio da procedure
 CREATE PROCEDURE sp_iudconteudo (@acao CHAR(1), @codigo INT, @descricao VARCHAR(200), @codigodisciplina INT, @saida VARCHAR(200) OUTPUT)
 AS
 IF(UPPER(@acao) = 'I')
@@ -600,13 +661,13 @@ BEGIN
 END
 ELSE
 BEGIN
-	RAISERROR('Opera√ß√£o inv√°lida', 16, 1)
+	RAISERROR('OperaÁ„o inv·lida', 16, 1)
 END
 
 -- IND02 - User Defined Functions
 ---------------------------------------------------------------------------
 
--- Fun√ß√£o Matr√≠cula Inicial: Retorna uma tabela com todas as disciplinas determinadas como n√£o cursadas
+-- FunÁ„o MatrÌcula Inicial: Retorna uma tabela com todas as disciplinas determinadas como n„o cursadas
 --------------------------------------------------------------------------
 CREATE FUNCTION fn_matriculainicial(@codigomatricula INT)
 RETURNS @tabela TABLE(
@@ -617,7 +678,7 @@ situacao VARCHAR(50)
 AS
 BEGIN
 	INSERT INTO @tabela (codigo_matricula, codigo_disciplina, situacao)
-	SELECT @codigomatricula, d.codigo, 'N√£o cursado' AS situacao
+	SELECT @codigomatricula, d.codigo, 'N„o cursado' AS situacao
 	FROM matricula m, curso c, disciplina d, aluno a
 	WHERE d.curso_codigo = c.codigo
 		AND a.curso_codigo = c.codigo
@@ -625,7 +686,7 @@ BEGIN
 	RETURN
 END
 
--- Fun√ß√£o Ultima Matr√≠cula: Retorna uma tabela com a ultima matricula feita por um aluno
+-- FunÁ„o Ultima MatrÌcula: Retorna uma tabela com a ultima matricula feita por um aluno
 ------------------------------------------------------------------------
 CREATE FUNCTION fn_ultimamatricula(@codigomatricula INT)
 RETURNS @tabela TABLE(
@@ -678,7 +739,7 @@ WHERE c.codigo_disciplina = d.codigo
 
 SELECT * FROM v_conteudos
 
--- IND04 - Inser√ß√µes para teste
+-- IND04 - InserÁıes para teste
 --------------------------------------------------------------------------------------
 
 delete aluno
@@ -718,56 +779,56 @@ select * from curso c, disciplina d where d.curso_codigo = c.codigo
 
 -- Valores de teste para tabela Curso
 INSERT INTO curso VALUES
-(101, 'An√°lise e Desenvolvimento de Sistemas', 2800, 'ADS', 5),
+(101, 'An·lise e Desenvolvimento de Sistemas', 2800, 'ADS', 5),
 (102, 'Desenvolvimento de Software Multiplataforma', 1400, 'DSM', 5),
 (103, 'Recursos Humanos', 1400, 'GRH', 4)
 
 -- Valores de teste para tabela Disciplina
 -- Curso 101
 INSERT INTO disciplina VALUES
-(1001, 'Laborat√≥rio de Banco de Dados', 4, '14:50', 'Segunda', 101),
-(1002, 'Banco de Dados', 4, '14:50', 'Ter√ßa', 101),
-(1003, 'Algor√≠tmos e L√≥gica de Programa√ß√£o', 4, '14:50', 'Segunda', 101),
-(1004, 'Matem√°tica Discreta', 4, '13:00', 'Quinta', 101),
-(1005, 'Linguagem de Programa√ß√£o', 4, '14:50', 'Ter√ßa', 101),
-(1006, 'Estruturas de Dados', 2, '13:00', 'Ter√ßa', 101),
-(1007, 'Programa√ß√£o Mobile', 4, '13:00', 'Sexta', 101),
+(1001, 'LaboratÛrio de Banco de Dados', 4, '14:50', 'Segunda', 101),
+(1002, 'Banco de Dados', 4, '14:50', 'TerÁa', 101),
+(1003, 'AlgorÌtmos e LÛgica de ProgramaÁ„o', 4, '14:50', 'Segunda', 101),
+(1004, 'Matem·tica Discreta', 4, '13:00', 'Quinta', 101),
+(1005, 'Linguagem de ProgramaÁ„o', 4, '14:50', 'TerÁa', 101),
+(1006, 'Estruturas de Dados', 2, '13:00', 'TerÁa', 101),
+(1007, 'ProgramaÁ„o Mobile', 4, '13:00', 'Sexta', 101),
 (1008, 'Empreendedorismo', 2, '13:00', 'Quarta', 101),
-(1009, '√âtica e Responsabilidade', 2, '16:50', 'Segunda', 101),
-(1010, 'Administra√ß√£o Geral', 4, '14:50', 'Ter√ßa', 101),
-(1011, 'Sistemas de Informa√ß√£o', 4, '13:00', 'Ter√ßa', 101),
-(1012, 'Gest√£o e Governan√ßa de TI', 4, '14:50', 'Sexta', 101),
+(1009, '…tica e Responsabilidade', 2, '16:50', 'Segunda', 101),
+(1010, 'AdministraÁ„o Geral', 4, '14:50', 'TerÁa', 101),
+(1011, 'Sistemas de InformaÁ„o', 4, '13:00', 'TerÁa', 101),
+(1012, 'Gest„o e GovernanÁa de TI', 4, '14:50', 'Sexta', 101),
 (1013, 'Redes de Computadores', 4, '14:50', 'Quinta', 101),
 (1014, 'Contabilidade', 2, '13:00', 'Quarta', 101),
-(1015, 'Economia e Finan√ßas', 4, '13:00', 'Quarta', 101),
-(1016, 'Arquitetura e Organiza√ß√£o de Computadores', 4, '13:00', 'Segunda', 101),
-(1017, 'Laborat√≥rio de Hardware', 4, '13:00', 'Segunda', 101),
+(1015, 'Economia e FinanÁas', 4, '13:00', 'Quarta', 101),
+(1016, 'Arquitetura e OrganizaÁ„o de Computadores', 4, '13:00', 'Segunda', 101),
+(1017, 'LaboratÛrio de Hardware', 4, '13:00', 'Segunda', 101),
 (1018, 'Sistemas Operacionais', 4, '14:50', 'Quinta', 101),
 (1019, 'Sistemas Operacionais 2', 4, '14:50', 'Sexta', 101),
-(1020, 'Programa√ß√£o Web', 4, '13:00', 'Ter√ßa', 101),
-(1021, 'Programa√ß√£o em Microinform√°tica', 2, '13:00', 'Sexta', 101),
-(1022, 'Programa√ß√£o Linear', 2, '13:00', 'Segunda', 101),
-(1023, 'C√°lculo', 4, '13:00', 'Segunda', 101),
+(1020, 'ProgramaÁ„o Web', 4, '13:00', 'TerÁa', 101),
+(1021, 'ProgramaÁ„o em Microinform·tica', 2, '13:00', 'Sexta', 101),
+(1022, 'ProgramaÁ„o Linear', 2, '13:00', 'Segunda', 101),
+(1023, 'C·lculo', 4, '13:00', 'Segunda', 101),
 (1024, 'Teste de Software', 2, '13:00', 'Quinta', 101),
 (1025, 'Engenharia de Software 1', 4, '13:00', 'Segunda', 101),
-(1026, 'Engenharia de Software 2', 4, '13:00', 'Ter√ßa', 101),
+(1026, 'Engenharia de Software 2', 4, '13:00', 'TerÁa', 101),
 (1027, 'Engenharia de Software 3', 4, '14:50', 'Segunda', 101),
-(1028, 'Laborat√≥rio de Engenharia de Software', 4, '14:50', 'Quarta', 101),
-(1029, 'Ingl√™s 1', 4, '14:50', 'Sexta', 101),
-(1030, 'Ingl√™s 2', 2, '14:50', 'Ter√ßa', 101),
-(1031, 'Ingl√™s 3', 2, '13:00', 'Sexta', 101),
-(1032, 'Ingl√™s 4', 2, '13:00', 'Segunda', 101),
-(1033, 'Ingl√™s 5', 2, '13:00', 'Ter√ßa', 101),
-(1034, 'Ingl√™s 6', 2, '13:00', 'Quinta', 101),
-(1035, 'Sociedade e Tecnologia', 2, '14:50', 'Ter√ßa', 101),
-(1036, 'Intera√ß√£o Humano Computador', 4, '14:50', 'Ter√ßa', 101),
-(1037, 'Estat√≠stica Aplicada', 4, '14:50', 'Quarta', 101),
-(1038, 'Laborat√≥rio de Redes de Computadores', 4, '14:50', 'Sexta', 101),
-(1039, 'Intelig√™ncia Artificial', 4, '13:00', 'Quarta', 101),
-(1040, 'Programa√ß√£o para Mainframes', 4, '14:50', 'Quarta', 101)
+(1028, 'LaboratÛrio de Engenharia de Software', 4, '14:50', 'Quarta', 101),
+(1029, 'InglÍs 1', 4, '14:50', 'Sexta', 101),
+(1030, 'InglÍs 2', 2, '14:50', 'TerÁa', 101),
+(1031, 'InglÍs 3', 2, '13:00', 'Sexta', 101),
+(1032, 'InglÍs 4', 2, '13:00', 'Segunda', 101),
+(1033, 'InglÍs 5', 2, '13:00', 'TerÁa', 101),
+(1034, 'InglÍs 6', 2, '13:00', 'Quinta', 101),
+(1035, 'Sociedade e Tecnologia', 2, '14:50', 'TerÁa', 101),
+(1036, 'InteraÁ„o Humano Computador', 4, '14:50', 'TerÁa', 101),
+(1037, 'EstatÌstica Aplicada', 4, '14:50', 'Quarta', 101),
+(1038, 'LaboratÛrio de Redes de Computadores', 4, '14:50', 'Sexta', 101),
+(1039, 'InteligÍncia Artificial', 4, '13:00', 'Quarta', 101),
+(1040, 'ProgramaÁ„o para Mainframes', 4, '14:50', 'Quarta', 101)
 
 INSERT INTO disciplina VALUES
-(1041, 'Programa√ß√£o DSM', 4, '13:00', 'Segunda', 102)
+(1041, 'ProgramaÁ„o DSM', 4, '13:00', 'Segunda', 102)
 
 
 -- Valores de teste para tabela Conteudo
@@ -784,9 +845,9 @@ INSERT INTO conteudo VALUES
 (100009, 'Fundamentos SQL', 1002),
 (100010, 'Criando o Banco SQL', 1002),
 (100011, 'Estrutura Sequencial', 1003),
-(100012, 'Estrutura de Decis√£o', 1003),
-(100013, 'Estrutura de Repeti√ß√£o', 1003),
-(100014, 'Programa√ß√£o Estruturada', 1003),
+(100012, 'Estrutura de Decis„o', 1003),
+(100013, 'Estrutura de RepetiÁ„o', 1003),
+(100014, 'ProgramaÁ„o Estruturada', 1003),
 (100015, 'Fluxograma e Teste de mesa', 1003)
 
 

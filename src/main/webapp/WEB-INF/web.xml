@@ -14,4 +14,14 @@
     <servlet-name>MatriculaServlet</servlet-name>
     <url-pattern>/matricula</url-pattern>
   </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>TelefoneServlet</display-name>
+    <servlet-name>TelefoneServlet</servlet-name>
+    <servlet-class>controller.TelefoneServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>TelefoneServlet</servlet-name>
+    <url-pattern>/Telefone</url-pattern>
+  </servlet-mapping>
 </web-app>
