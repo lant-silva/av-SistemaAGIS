@@ -55,6 +55,9 @@
 							id="telefone" name="telefone" placeholder="Telefone" 
 							value='<c:out value="${aluno.ra}"></c:out>'>
 						<td />
+						
+						
+						
 						<td>
 							<input type="submit" id="adicionarTelefone" name="botao" value="+">
 						<td />

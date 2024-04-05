@@ -8,15 +8,15 @@ USE agis
  Banco de Dados - Sistema AGIS
  Todas as queries SQL do sistema
 
- ÍNDICE:
- IND00 - Criação de Tabelas
+ �NDICE:
+ IND00 - Cria��o de Tabelas
  IND01 - Stored Procedures
  IND02 - User Defined Functions
  IND03 - Views
- IND04 - Inserções para teste
+ IND04 - Inser��es para teste
 
 */
---  IND00 - Criação de Tabelas
+--  IND00 - Cria��o de Tabelas
 -------------------------------------------------------------------------------
 
 CREATE TABLE aluno(
@@ -60,8 +60,7 @@ CREATE TABLE disciplina(
 codigo					INT				NOT NULL,
 nome					VARCHAR(100)	NOT NULL,
 qtd_aulas				INT				NOT NULL,
-horario_inicio			TIME			NOT NULL,
-horario_fim				TIME			NOT NULL,
+horario					TIME			NOT NULL,
 dia						VARCHAR(20)		NOT NULL,
 curso_codigo			INT				NOT NULL
 PRIMARY KEY(codigo)
@@ -96,10 +95,10 @@ FOREIGN KEY(codigo_matricula) REFERENCES matricula(codigo)
 -- IND01 - Stored Procedures
 ---------------------------------------------------------------------------------
 
--- Procedure de validação do cpf
+-- Procedure de valida��o do cpf
 ---------------------------------------------------------------------------------
 
--- Início da procedure
+-- In�cio da procedure
 CREATE PROCEDURE sp_validarcpf(@cpf CHAR(11), @valido BIT OUTPUT)
 AS
 DECLARE @soma1 INT,
@@ -115,7 +114,7 @@ SET @soma2 = 0
 IF LEN(@cpf) <> 11
 BEGIN
 	SET @valido = 0
-	RAISERROR('CPF Inválido', 16, 1)
+	RAISERROR('CPF Inv�lido', 16, 1)
 END
 
 WHILE(@cont <= 9)	
@@ -155,10 +154,10 @@ BEGIN
 	SET @valido = 0
 END
 
--- Procedure de validação da idade
+-- Procedure de valida��o da idade
 ------------------------------------------------------------------------------------
 
--- Início da procedure
+-- In�cio da procedure
 CREATE PROCEDURE sp_validaridade(@dtnasc DATE, @valido BIT OUTPUT)
 AS
 IF(DATEDIFF(YEAR,@dtnasc,GETDATE()) < 16)
@@ -171,10 +170,71 @@ BEGIN
 END
 -- Fim da procedure
 
--- Procedure de geração do RA
+-- Procedure do aluno_telefone
+------------------------------------------------------------------------------------
+CREATE PROCEDURE sp_iud_aluno_telefone
+    @acao CHAR(1),
+    @telefone CHAR(11),
+    @aluno_ra CHAR(9),
+    @saida VARCHAR(100) OUTPUT
+AS
+BEGIN
+    IF (@acao = 'I')
+    BEGIN
+        -- Verifica se o telefone j� est� cadastrado para o aluno
+        IF EXISTS (SELECT 1 FROM aluno_telefone WHERE telefone = @telefone AND aluno_ra = @aluno_ra)
+        BEGIN
+            SET @saida = 'Telefone j� cadastrado para o aluno'
+            RETURN
+        END
+
+        -- Insere o telefone do aluno
+        INSERT INTO aluno_telefone (telefone, aluno_ra)
+        VALUES (@telefone, @aluno_ra)
+        SET @saida = 'Telefone cadastrado para o aluno com sucesso'
+    END
+    ELSE IF (@acao = 'U')
+    BEGIN
+        -- Verifica se o telefone existe para o aluno
+        IF NOT EXISTS (SELECT 1 FROM aluno_telefone WHERE telefone = @telefone AND aluno_ra = @aluno_ra)
+        BEGIN
+            SET @saida = 'Telefone n�o encontrado para o aluno'
+            RETURN
+        END
+
+        -- Atualiza o telefone do aluno
+        UPDATE aluno_telefone
+        SET telefone = @telefone
+        WHERE aluno_ra = @aluno_ra
+        SET @saida = 'Telefone do aluno atualizado com sucesso'
+    END
+    ELSE IF (@acao = 'D')
+    BEGIN
+        -- Verifica se o telefone existe para o aluno
+        IF NOT EXISTS (SELECT 1 FROM aluno_telefone WHERE telefone = @telefone AND aluno_ra = @aluno_ra)
+        BEGIN
+            SET @saida = 'Telefone n�o encontrado para o aluno'
+            RETURN
+        END
+
+        -- Exclui o telefone do aluno
+        DELETE FROM aluno_telefone
+        WHERE telefone = @telefone AND aluno_ra = @aluno_ra
+        SET @saida = 'Telefone do aluno exclu�do com sucesso'
+    END
+    ELSE
+    BEGIN
+        RAISERROR('Opera��o inv�lida', 16, 1)
+        RETURN
+    END
+END
+--fim da procedure
 --------------------------------------------------------------------------------------------
 
--- Início da procedure
+-- Procedure de gera��o do RA
+--------------------------------------------------------------------------------------------
+
+-- In�cio da procedure
 CREATE PROCEDURE sp_gerarra(@ano CHAR(4), @sem CHAR(1), @ra CHAR(9) OUTPUT)
 AS
 
@@ -188,7 +248,7 @@ BEGIN
 	
 	SET @ra = @ano + @sem + @n1 + @n2 + @n3 + @n4
 	
-	-- Verifica se o RA gerado já pertence a um aluno, caso contrário, outro RA vai ser gerado
+	-- Verifica se o RA gerado j� pertence a um aluno, caso contr�rio, outro RA vai ser gerado
 	IF EXISTS(SELECT ra FROM aluno WHERE ra = @ra)
 	BEGIN 
 		SET @existe = 1
@@ -199,10 +259,10 @@ BEGIN
 	END
 END
 
--- Procedure de geração do Ano e Semestre limite
+-- Procedure de gera��o do Ano e Semestre limite
 ----------------------------------------------------------------------------------------------
 
--- Início da procedure
+-- In�cio da procedure
 CREATE PROCEDURE sp_geraranolimite(@ano CHAR(4), @sem CHAR(1), @anolimite CHAR(6) OUTPUT)
 AS
 BEGIN
@@ -222,7 +282,7 @@ END
 -- Procedure IUD Aluno
 ----------------------------------------------------------------------------------------------
 
--- Início da procedure
+-- In�cio da procedure
 CREATE PROCEDURE sp_iudaluno(@acao CHAR(1),
 				 		     @cpf CHAR(11),
 				 			 @ra CHAR(9) OUTPUT,
@@ -248,22 +308,13 @@ DECLARE @codigomatricula INT = 0
 
 -- Validar CPF
 
--- Se o cpf é válido
 EXEC sp_validarcpf @cpf, @cpfvalido OUTPUT 
 PRINT @cpfvalido
 IF(@cpfvalido = 0)
 BEGIN 
-	RAISERROR('CPF inválido', 16, 1)
+	RAISERROR('CPF inv�lido', 16, 1)
 	RETURN
 END
-
--- Se já existe um cpf igual ao inserido no sistema
-IF EXISTS(SELECT cpf FROM aluno WHERE cpf = @cpf)
-BEGIN
-	RAISERROR('O CPF inserido já existe dentro do sistema', 16, 1)
-	RETURN
-END	
-
 
 -- Validar Idade
 
@@ -271,7 +322,7 @@ EXEC sp_validaridade @datanasc, @idadevalida OUTPUT
 PRINT @idadevalida
 IF(@idadevalida = 0)
 BEGIN 
-	RAISERROR('Idade inválida', 16 ,1)
+	RAISERROR('Idade inv�lida', 16 ,1)
 	RETURN
 END
 
@@ -332,101 +383,154 @@ BEGIN
 	WHERE cpf = @cpf
 	SET @saida = 'Aluno atualizado'
 END
+/*
+ Marcado para remo��o (Exclus�o do aluno � desnecess�ria para o funcionamento do sistema)
+ELSE 
+IF(UPPER(@acao) = 'D')	
+BEGIN
+	DELETE matricula_disciplina
+	FROM matricula_disciplina md, matricula m, aluno a
+	WHERE a.cpf = m.aluno_cpf
+		AND md.codigo_matricula = m.codigo
+
+	DELETE matricula
+	FROM matricula m, aluno a
+	WHERE a.cpf = m.aluno_cpf
+
+	DELETE aluno
+	WHERE cpf = @cpf
+	SET @saida = 'Aluno removido'
+END
+*/
 ELSE
 BEGIN 
 	RAISERROR('Erro desconhecido', 16, 1)
 END
 
+
 -- Fim da procedure
 
--- Procedure do aluno_telefone
-------------------------------------------------------------------------------------
-CREATE PROCEDURE sp_iud_aluno_telefone
-    @acao CHAR(1),
-    @telefone CHAR(11),
-    @aluno_ra CHAR(9),
-    @saida VARCHAR(100) OUTPUT
+-- Procedure IUD Cursos
+--------------------------------------------------------------------------
+
+-- In�cio da procedure
+CREATE PROCEDURE sp_iudcurso(@acao CHAR(1), @codigo INT, @nome VARCHAR(100), @cargahoraria INT, @sigla VARCHAR(10), @notaenade INT, @saida VARCHAR(300) OUTPUT)
 AS
-BEGIN 
-    IF (@acao = 'I')
-    BEGIN
-        -- Verifica se o telefone já está cadastrado para o aluno
-        IF EXISTS (SELECT 1 FROM aluno_telefone WHERE telefone = @telefone AND aluno_ra = @aluno_ra)
-        BEGIN
-            SET @saida = 'Telefone já cadastrado para o aluno'
-            RETURN
-        END
-
-        -- Insere o telefone do aluno
-        INSERT INTO aluno_telefone (telefone, aluno_ra)
-        VALUES (@telefone, @aluno_ra)
-        SET @saida = 'Telefone cadastrado para o aluno com sucesso'
-    END
-    ELSE IF (@acao = 'U')
-    BEGIN
-        -- Verifica se o telefone existe para o aluno
-        IF NOT EXISTS (SELECT 1 FROM aluno_telefone WHERE telefone = @telefone AND aluno_ra = @aluno_ra)
-        BEGIN
-            SET @saida = 'Telefone não encontrado para o aluno'
-            RETURN
-        END
-		 
-        -- Atualiza o telefone do aluno
-        UPDATE aluno_telefone
-        SET telefone = @telefone
-        WHERE aluno_ra = @aluno_ra
-        SET @saida = 'Telefone do aluno atualizado com sucesso'
-    END
-    ELSE IF (@acao = 'D')
-    BEGIN
-        -- Verifica se o telefone existe para o aluno
-        IF NOT EXISTS (SELECT 1 FROM aluno_telefone WHERE telefone = @telefone AND aluno_ra = @aluno_ra)
-        BEGIN
-            SET @saida = 'Telefone não encontrado para o aluno'
-            RETURN
-        END
-
-        -- Exclui o telefone do aluno
-        DELETE FROM aluno_telefone
-        WHERE telefone = @telefone AND aluno_ra = @aluno_ra
-        SET @saida = 'Telefone do aluno excluído com sucesso'
-    END
-    ELSE
-    BEGIN
-        RAISERROR('Operação inválida', 16, 1)
-        RETURN
-    END
+IF(UPPER(@acao) = 'I') --Opera��o de inser��o
+BEGIN
+	INSERT INTO curso (codigo, nome, carga_horaria, sigla, nota_enade) VALUES
+	(@codigo, @nome, @cargahoraria, @sigla, @notaenade)
+	SET @saida = 'Curso inserido'
 END
---fim da procedure
-------------------------------------------------------------------------------------------
+ELSE 
+IF(UPPER(@acao) = 'U') --Opera��o de atualiza��o
+BEGIN 
+	UPDATE curso
+	SET nome = @nome, carga_horaria = @cargahoraria, sigla = @sigla, nota_enade = @notaenade
+	WHERE codigo = @codigo
+	SET @saida = 'Curso alterado'
+END
+ELSE 
+IF(UPPER(@acao) = 'D') --Opera��o de exclus�o
+BEGIN 
+	DELETE curso
+	WHERE codigo = @codigo
+	SET @saida = 'Curso removido'
+END
+ELSE 
+BEGIN 
+	RAISERROR('Opera��o inv�lida', 16, 1)
+END
 
--- Procedure IUD Matrícula 
+DECLARE @saida VARCHAR(300)
+EXEC sp_iudcurso 'I', 101, 'An�lise e Desenvolvimento de Sistemas', 2800, 'ADS', 5, @saida OUTPUT
+PRINT @saida
+
+SELECT * FROM curso
+
+-- Procedure IUD Disciplina
+----------------------------------------------------------------------------------------------
+
+-- In�cio da procedure
+CREATE PROCEDURE sp_iuddisciplina (@acao CHAR(1), @codigo INT, @nome VARCHAR(100), @qtdaulas INT, @horario TIME, @diasemana VARCHAR(20), @cursocodigo INT, @saida VARCHAR(200) OUTPUT)
+AS
+IF(UPPER(@acao) = 'I') --Opera��o de inser��o
+BEGIN
+	
+	--Verificar se a disciplina n�o � duplicada com outro curso
+	IF EXISTS(SELECT curso_codigo FROM disciplina WHERE curso_codigo = @cursocodigo AND nome = @nome)
+	BEGIN
+		RAISERROR('A disciplina j� existe em um curso, remova a disciplina desse curso ou crie uma semelhante.', 16, 1)
+		RETURN
+	END
+	ELSE
+	BEGIN
+		INSERT INTO disciplina VALUES
+		(@codigo, @nome, @qtdaulas, @horario, @diasemana, @cursocodigo)
+		SET @saida = 'Curso inserido'
+	END
+END
+ELSE
+IF(UPPER(@acao) = 'U') --Opera��o de atualiza��o
+BEGIN
+	--Verificar se a disciplina n�o � duplicada com outro curso
+	IF EXISTS(SELECT curso_codigo FROM disciplina WHERE curso_codigo = @cursocodigo AND nome = @nome)
+	BEGIN
+		RAISERROR('A disciplina j� existe em um curso, remova a disciplina desse curso ou crie uma semelhante.', 16, 1)
+		RETURN
+	END
+	ELSE
+	BEGIN
+		UPDATE disciplina
+		SET nome = @nome, qtd_aulas = @qtdaulas, horario = @horario, dia = @diasemana, curso_codigo = @cursocodigo
+		WHERE codigo = @codigo
+		SET @saida = 'Curso atualizado'
+	END
+END
+ELSE
+IF(UPPER(@acao) = 'D') --Opera��o de exclus�o
+BEGIN
+	DELETE disciplina
+	WHERE codigo = @codigo
+	SET @saida = 'Disciplina removida'
+END
+ELSE
+BEGIN
+	RAISERROR('Opera��o inv�lida', 16, 1)
+END
+-- Fim da procedure
+
+-- Procedure IUD Matr�cula 
 ------------------------------------------------------------------------
 
 DECLARE @saida VARCHAR(200)
 EXEC sp_inserirmatricula '52169314814', 1000001, 1001, @saida OUTPUT
 PRINT @saida
 
--- Início da procedure
+<<<<<<< HEAD
+-- In�cio da procedure
 CREATE PROCEDURE sp_inserirmatricula(@ra CHAR(9), @codigomatricula INT, @codigodisciplina INT, @saida VARCHAR(200) OUTPUT)
+=======
+-- Início da procedure
+CREATE PROCEDURE sp_inserirmatricula(@ra CHAR(9), @codigomatricula INT, @codigodisciplina INT OUTPUT, @saida VARCHAR(200) OUTPUT)
+>>>>>>> branch 'master' of git@github.com:lant-silva/av-SistemaAGIS.git
 AS
 DECLARE @conflito BIT,
 		@qtdaula INT,
-		@horarioinicio TIME,
-		@horariofim TIME,
+		@horario TIME,
 		@diasemana VARCHAR(50)
 
-SELECT @qtdaula = d.qtd_aulas, @horarioinicio = d.horario_inicio, @horariofim = d.horario_fim, @diasemana = d.dia
+
+SELECT @qtdaula = d.qtd_aulas, @horario = d.horario, @diasemana = d.dia
 FROM disciplina d, matricula_disciplina md, matricula m
-WHERE d.codigo = @codigodisciplina
-	ANd md.codigo_disciplina = d.codigo
+WHERE d.codigo = md.codigo_disciplina
 	AND md.codigo_matricula = m.codigo
 	AND m.codigo = @codigomatricula
 	AND m.aluno_ra = @ra
 
-EXEC sp_verificarconflitohorario @codigomatricula, @qtdaula, @diasemana, @horarioinicio, @horariofim, @conflito OUTPUT
 
-PRINT @conflito
+EXEC sp_verificarconflitohorario @codigomatricula, @horario, @qtdaula, @diasemana, @conflito OUTPUT
+
 IF(@conflito = 0)
 BEGIN
 	UPDATE matricula_disciplina 
@@ -437,13 +541,14 @@ BEGIN
 END
 ELSE
 BEGIN
-	DELETE matricula_disciplina
-	WHERE codigo_matricula = @codigomatricula
-
+<<<<<<< HEAD
+	RAISERROR('Matricula cancelada: Existe conflito de hor�rios', 16, 1)
+=======
 	DELETE matricula
 	WHERE codigo = @codigomatricula
 
 	RAISERROR('Matricula cancelada: Existe conflito de horários', 16, 1)
+>>>>>>> branch 'master' of git@github.com:lant-silva/av-SistemaAGIS.git
 	RETURN
 END
 -- Fim da procedure
@@ -451,21 +556,7 @@ END
 -- Procedimento Gerar matricula de um aluno
 -----------------------------------------------------------------------------------
 
-DECLARE @horarioinicio TIME = '14:50'
-DECLARE @horariofial TIME = '18:10'
-DECLARE @conflito BIT = 0
-IF('13:00' >= @horarioinicio OR '13:00' <= @horariofial)
-BEGIN
-	SET @conflito = 1
-END
-ELSE
-BEGIN
-	SET @conflito = 0
-END
-PRINT @conflito
-
-
--- Início da procedure
+-- In�cio da procedure
 CREATE PROCEDURE sp_gerarmatricula(@ra CHAR(9), @codigomatricula INT OUTPUT)
 AS
 BEGIN
@@ -476,13 +567,17 @@ BEGIN
 	FROM matricula
 	WHERE aluno_ra = @ra
 
-	IF(@cont >= 1) -- Caso o aluno já seja matriculado
+	IF(@cont >= 1) -- Caso o aluno j� seja matriculado
 	BEGIN
+<<<<<<< HEAD
+		-- Pego o c�digo da ultima matricula realizada pelo aluno
 		SELECT TOP 1 @codigomatricula = codigo 
 		FROM matricula WHERE aluno_ra = @ra 
 		ORDER BY codigo DESC
-		-- Insiro o aluno em uma nova matricula
 
+=======
+>>>>>>> branch 'master' of git@github.com:lant-silva/av-SistemaAGIS.git
+		-- Insiro o aluno em uma nova matricula
 		SELECT TOP 1 @novocodigo = codigo + 1
 		FROM matricula
 		ORDER BY codigo DESC
@@ -490,18 +585,17 @@ BEGIN
 		INSERT INTO matricula VALUES
 		(@novocodigo, @ra)
 
-
-		-- Como a lógica para atualização da matricula será realizada por outra procedure,
+		-- Como a l�gica para atualiza��o da matricula ser� realizada por outra procedure,
 		-- eu apenas reinsiro a ultima matricula feita pelo aluno
 		INSERT INTO matricula_disciplina
-		SELECT @novocodigo, codigo_disciplina, situacao FROM dbo.fn_ultimamatricula(@codigomatricula)
+		SELECT codigo_matricula, codigo_disciplina, situacao FROM dbo.fn_ultimamatricula(@ra)
 
-		-- Retorno o novo codigo
-		SET @codigomatricula = @novocodigo
+		SELECT @codigomatricula = codigo_matricula FROM dbo.fn_ultimamatricula(@ra)
+
 	END
 	ELSE -- A primeira matricula do aluno
 	BEGIN
-		IF NOT EXISTS(SELECT * FROM matricula) --Se nenhuma outra matrícula existir (garante que o primeiro aluno a ser inserido 
+		IF NOT EXISTS(SELECT * FROM matricula) --Se nenhuma outra matr�cula existir (garante que o primeiro aluno a ser inserido 
 		BEGIN
 			SET @codigomatricula = 1000001
 		END
@@ -521,27 +615,35 @@ BEGIN
 END
 -- Fim da procedure
 
+<<<<<<< HEAD
+-- Fim da fun��o
+
+-- Procedure de verifica��o de conflito de horarios em uma matricula
+=======
 -- Procedure de verificação de conflito de horarios em uma matricula
+>>>>>>> branch 'master' of git@github.com:lant-silva/av-SistemaAGIS.git
 ------------------------------------------------------------------------
 
--- Início da procedure
-CREATE PROCEDURE sp_verificarconflitohorario(@codigomatricula INT, @qtdaulas INT, @diasemana VARCHAR(50), @horarioinicio TIME, @horariofim TIME, @conflito BIT OUTPUT)
+-- In�cio da procedure
+CREATE PROCEDURE sp_verificarconflitohorario(@codigomatricula INT, @horarioinicio TIME, @qtdaulas INT, @diasemana VARCHAR(50), @conflito BIT OUTPUT)
 AS
-DECLARE @conflitoexiste INT
+DECLARE @conflitoexiste INT,
+		@horariofim TIME
 
+SET @horariofim = DATEADD(MINUTE, @qtdaulas * 50, @horarioinicio)
 PRINT @horariofim
 SELECT @conflitoexiste = COUNT(*)
 FROM matricula_disciplina md, disciplina d
 WHERE md.codigo_matricula = @codigomatricula
 	AND md.codigo_disciplina = d.codigo
 	AND d.dia = @diasemana
-	AND	(md.situacao = 'Em curso')
-	AND ((@horarioinicio BETWEEN d.horario_inicio AND d.horario_fim) OR (@horariofim BETWEEN d.horario_inicio AND d.horario_fim) OR (d.horario_inicio BETWEEN @horarioinicio AND @horariofim) OR (d.horario_fim BETWEEN @horarioinicio AND @horariofim))
-
-	--AND ((@horarioinicio >= d.horario_inicio) AND (@horarioinicio <= d.horario_fim) AND (@horariofim >= d.horario_inicio) AND (@horariofim <= d.horario_fim))
+	AND md.situacao = 'Em curso'
+	AND ((@horarioinicio BETWEEN d.horario AND @horariofim)
+		 OR (@horariofim BETWEEN d.horario AND @horariofim)
+		)
 
 print @conflitoexiste
-																	
+
 IF (@conflitoexiste >= 1)
 BEGIN
 	SET @conflito = 1
@@ -550,12 +652,48 @@ ELSE
 BEGIN
 	SET @conflito = 0
 END
+
+
 -- Fim da procedure
+
+
+
+-- Procedure Conteudo
+-------------------------------------------------------------------------
+
+-- In�cio da procedure
+CREATE PROCEDURE sp_iudconteudo (@acao CHAR(1), @codigo INT, @descricao VARCHAR(200), @codigodisciplina INT, @saida VARCHAR(200) OUTPUT)
+AS
+IF(UPPER(@acao) = 'I')
+BEGIN
+	INSERT INTO conteudo VALUES
+	(@codigo, @descricao, @codigodisciplina)
+	SET @saida = 'Conteudo inserido'
+END
+ELSE
+IF(UPPER(@acao) = 'U')
+BEGIN
+	UPDATE conteudo
+	SET descricao = @descricao, codigo_disciplina = @codigodisciplina
+	WHERE codigo = @codigo
+	SET @saida = 'Conteudo atualizado'
+END
+ELSE
+IF(UPPER(@acao) = 'D')
+BEGIN
+	DELETE conteudo
+	WHERE codigo = @codigo
+	SET @saida = 'Conteudo removido'
+END
+ELSE
+BEGIN
+	RAISERROR('Opera��o inv�lida', 16, 1)
+END
 
 -- IND02 - User Defined Functions
 ---------------------------------------------------------------------------
 
--- Função Matrícula Inicial: Retorna uma tabela com todas as disciplinas determinadas como não cursadas
+-- Fun��o Matr�cula Inicial: Retorna uma tabela com todas as disciplinas determinadas como n�o cursadas
 --------------------------------------------------------------------------
 CREATE FUNCTION fn_matriculainicial(@codigomatricula INT)
 RETURNS @tabela TABLE(
@@ -566,7 +704,7 @@ situacao VARCHAR(50)
 AS
 BEGIN
 	INSERT INTO @tabela (codigo_matricula, codigo_disciplina, situacao)
-	SELECT @codigomatricula, d.codigo, 'Não cursado' AS situacao
+	SELECT @codigomatricula, d.codigo, 'N�o cursado' AS situacao
 	FROM matricula m, curso c, disciplina d, aluno a
 	WHERE d.curso_codigo = c.codigo
 		AND a.curso_codigo = c.codigo
@@ -574,9 +712,9 @@ BEGIN
 	RETURN
 END
 
--- Função Ultima Matrícula: Retorna uma tabela com a ultima matricula feita por um aluno
+-- Fun��o Ultima Matr�cula: Retorna uma tabela com a ultima matricula feita por um aluno
 ------------------------------------------------------------------------
-CREATE FUNCTION fn_ultimamatricula(@codigomatricula INT)
+CREATE FUNCTION fn_ultimamatricula(@ra CHAR(9))
 RETURNS @tabela TABLE(
 codigo_matricula INT,
 codigo_disciplina INT,
@@ -584,17 +722,23 @@ situacao VARCHAR(50)
 )
 AS
 BEGIN
+	DECLARE @codigomatricula INT
+
+	SELECT TOP 1 @codigomatricula = codigo 
+	FROM matricula WHERE aluno_ra = @ra 
+	ORDER BY codigo DESC
+
+
 	INSERT INTO @tabela (codigo_matricula, codigo_disciplina, situacao)
 	SELECT @codigomatricula AS codigo_matricula, md.codigo_disciplina, md.situacao 
-	FROM matricula_disciplina md, matricula m
+	FROM matricula_disciplina md, matricula m, aluno a
 	WHERE md.codigo_matricula = @codigomatricula	
 		AND m.codigo = @codigomatricula
+		AND m.aluno_ra = a.ra 
 	RETURN
 END
 
-
-	DECLARE @codigomatricula INT = 1000001
-SELECT * FROM dbo.fn_ultimamatricula(@codigomatricula)
+SELECT * FROM dbo.fn_ultimamatricula(200211566)
 
 -- Função Listar Ultima Matrícula
 ------------------------------------------------------------------------
@@ -604,8 +748,7 @@ codigo_matricula INT,
 codigo INT,
 nome VARCHAR(100),
 qtd_aulas INT,
-horario_inicio TIME,
-horario_fim TIME,
+horario TIME,
 dia VARCHAR(20),
 curso_codigo INT,
 situacao VARCHAR(50)
@@ -618,10 +761,10 @@ BEGIN
 	FROM matricula WHERE aluno_ra = @ra 
 	ORDER BY codigo DESC
 
-	INSERT INTO @tabela (codigo_matricula, codigo, nome, qtd_aulas, horario_inicio, horario_fim, dia, curso_codigo, situacao)
+	INSERT INTO @tabela (codigo_matricula, codigo, nome, qtd_aulas, horario, dia, curso_codigo, situacao)
 	SELECT CAST(md.codigo_matricula AS VARCHAR), CAST(d.codigo AS VARCHAR),
 		   d.nome, CAST(d.qtd_aulas AS VARCHAR),
-		   d.horario_inicio, d.horario_fim, d.dia AS dia, 
+		   d.horario, d.dia AS dia, 
 		   CAST(d.curso_codigo AS VARCHAR), md.situacao
 	FROM matricula_disciplina md, disciplina d, aluno a, matricula m
 	WHERE m.codigo = @codigomatricula
@@ -665,7 +808,7 @@ WHERE c.codigo_disciplina = d.codigo
 
 SELECT * FROM v_conteudos
 
--- IND04 - Inserções para teste
+-- IND04 - Inser��es para teste
 --------------------------------------------------------------------------------------
 
 delete aluno
@@ -673,11 +816,10 @@ delete matricula
 where codigo = 1000002
 
 delete matricula_disciplina
-where codigo_matricula = 1000002
 
 SELECT * FROM aluno
 SELECT * FROM matricula
-select * from matricula_disciplina
+SELECT * FROM matricula_disciplina 
 
 
 
@@ -686,20 +828,21 @@ EXEC sp_iudaluno 'I', '52169314814', 0, 'fulano', 'fulano', '2000-01-01', 'fulan
 PRINT @saida
 
 DECLARE @conflito BIT
-EXEC sp_verificarconflitohorario 1000002, 4, 'Segunda', '16:40', '18:20', @conflito OUTPUT
+EXEC sp_verificarconflitohorario 1000001, '14:50', 4, 'Segunda', @conflito OUTPUT
 PRINT @conflito
 
 UPDATE matricula_disciplina
 SET situacao = 'Em curso'
-WHERE codigo_matricula = 1000002
+WHERE codigo_matricula = 1000001
 	AND codigo_disciplina = 1003
 
 DECLARE @saida VARCHAR(200)
-EXEC sp_inserirmatricula '200214519', 1000002, 1001, @saida OUTPUT
+EXEC sp_inserirmatricula '200218658', 1001, @saida OUTPUT
 PRINT @saida
 
+
 DECLARE @codigomatricula INT
-EXEC sp_gerarmatricula '200214519', @codigomatricula OUTPUT
+EXEC sp_gerarmatricula '200211566', @codigomatricula OUTPUT
 PRINT @codigomatricula
 
 SELECT * FROM matricula_disciplina WHERE codigo_matricula = 1000001
@@ -713,56 +856,56 @@ select * from curso c, disciplina d where d.curso_codigo = c.codigo
 
 -- Valores de teste para tabela Curso
 INSERT INTO curso VALUES
-(101, 'Análise e Desenvolvimento de Sistemas', 2800, 'ADS', 5),
+(101, 'An�lise e Desenvolvimento de Sistemas', 2800, 'ADS', 5),
 (102, 'Desenvolvimento de Software Multiplataforma', 1400, 'DSM', 5),
 (103, 'Recursos Humanos', 1400, 'GRH', 4)
 
 -- Valores de teste para tabela Disciplina
 -- Curso 101
 INSERT INTO disciplina VALUES
-(1001, 'Laboratório de Banco de Dados', 4, '14:50', '18:20', 'Segunda', 101),
-(1002, 'Banco de Dados', 4, '14:50', '18:20', 'Terça', 101),
-(1003, 'Algorítmos e Lógica de Programação', 4, '14:50', '18:20', 'Segunda', 101),
-(1004, 'Matemática Discreta', 4, '13:00', '16:30','Quinta', 101),
-(1005, 'Linguagem de Programação', 4, '14:50', '18:20', 'Terça', 101),
-(1006, 'Estruturas de Dados', 2, '13:00', '14:40', 'Terça', 101),
-(1007, 'Programação Mobile', 4, '13:00', '16:30', 'Sexta', 101),
-(1008, 'Empreendedorismo', 2, '13:00', '14:40', 'Quarta', 101),
-(1009, 'Ética e Responsabilidade', 2, '16:50', '18:20', 'Segunda', 101),
-(1010, 'Administração Geral', 4, '14:50', '18:20', 'Terça', 101),
-(1011, 'Sistemas de Informação', 4, '13:00', '16:30', 'Terça', 101),
-(1012, 'Gestão e Governança de TI', 4, '14:50', '18:20', 'Sexta', 101),
-(1013, 'Redes de Computadores', 4, '14:50', '18:20', 'Quinta', 101),
-(1014, 'Contabilidade', 2, '13:00', '14:40', 'Quarta', 101),
-(1015, 'Economia e Finanças', 4, '13:00', '16:30', 'Quarta', 101),
-(1016, 'Arquitetura e Organização de Computadores', 4, '13:00', '16:30', 'Segunda', 101),
-(1017, 'Laboratório de Hardware', 4, '13:00', '16:30', 'Segunda', 101),
-(1018, 'Sistemas Operacionais', 4, '14:50', '18:20', 'Quinta', 101),
-(1019, 'Sistemas Operacionais 2', 4, '14:50', '18:20', 'Sexta', 101),
-(1020, 'Programação Web', 4, '13:00', '16:30', 'Terça', 101),
-(1021, 'Programação em Microinformática', 2, '13:00', '14:40', 'Sexta', 101),
-(1022, 'Programação Linear', 2, '13:00', '14:40', 'Segunda', 101),
-(1023, 'Cálculo', 4, '13:00', '16:30', 'Segunda', 101),
-(1024, 'Teste de Software', 2, '13:00', '14:40', 'Quinta', 101),
-(1025, 'Engenharia de Software 1', 4, '13:00', '16:30', 'Segunda', 101),
-(1026, 'Engenharia de Software 2', 4, '13:00', '16:30', 'Terça', 101),
-(1027, 'Engenharia de Software 3', 4, '14:50', '18:20', 'Segunda', 101),
-(1028, 'Laboratório de Engenharia de Software', 4, '14:50', '18:20', 'Quarta', 101),
-(1029, 'Inglês 1', 4, '14:50', '18:20', 'Sexta', 101),
-(1030, 'Inglês 2', 2, '14:50', '16:30', 'Terça', 101),
-(1031, 'Inglês 3', 2, '13:00', '14:40', 'Sexta', 101),
-(1032, 'Inglês 4', 2, '13:00', '14:40', 'Segunda', 101),
-(1033, 'Inglês 5', 2, '13:00', '14:40', 'Terça', 101),
-(1034, 'Inglês 6', 2, '13:00', '14:40', 'Quinta', 101),
-(1035, 'Sociedade e Tecnologia', 2, '14:50', '16:30', 'Terça', 101),
-(1036, 'Interação Humano Computador', 4, '14:50', '18:20', 'Terça', 101),
-(1037, 'Estatística Aplicada', 4, '14:50', '18:20', 'Quarta', 101),
-(1038, 'Laboratório de Redes de Computadores', 4, '14:50', '18:20', 'Sexta', 101),
-(1039, 'Inteligência Artificial', 4, '13:00', '16:30', 'Quarta', 101),
-(1040, 'Programação para Mainframes', 4, '14:50', '18:20', 'Quarta', 101)
+(1001, 'Laborat�rio de Banco de Dados', 4, '14:50', 'Segunda', 101),
+(1002, 'Banco de Dados', 4, '14:50', 'Ter�a', 101),
+(1003, 'Algor�tmos e L�gica de Programa��o', 4, '14:50', 'Segunda', 101),
+(1004, 'Matem�tica Discreta', 4, '13:00', 'Quinta', 101),
+(1005, 'Linguagem de Programa��o', 4, '14:50', 'Ter�a', 101),
+(1006, 'Estruturas de Dados', 2, '13:00', 'Ter�a', 101),
+(1007, 'Programa��o Mobile', 4, '13:00', 'Sexta', 101),
+(1008, 'Empreendedorismo', 2, '13:00', 'Quarta', 101),
+(1009, '�tica e Responsabilidade', 2, '16:50', 'Segunda', 101),
+(1010, 'Administra��o Geral', 4, '14:50', 'Ter�a', 101),
+(1011, 'Sistemas de Informa��o', 4, '13:00', 'Ter�a', 101),
+(1012, 'Gest�o e Governan�a de TI', 4, '14:50', 'Sexta', 101),
+(1013, 'Redes de Computadores', 4, '14:50', 'Quinta', 101),
+(1014, 'Contabilidade', 2, '13:00', 'Quarta', 101),
+(1015, 'Economia e Finan�as', 4, '13:00', 'Quarta', 101),
+(1016, 'Arquitetura e Organiza��o de Computadores', 4, '13:00', 'Segunda', 101),
+(1017, 'Laborat�rio de Hardware', 4, '13:00', 'Segunda', 101),
+(1018, 'Sistemas Operacionais', 4, '14:50', 'Quinta', 101),
+(1019, 'Sistemas Operacionais 2', 4, '14:50', 'Sexta', 101),
+(1020, 'Programa��o Web', 4, '13:00', 'Ter�a', 101),
+(1021, 'Programa��o em Microinform�tica', 2, '13:00', 'Sexta', 101),
+(1022, 'Programa��o Linear', 2, '13:00', 'Segunda', 101),
+(1023, 'C�lculo', 4, '13:00', 'Segunda', 101),
+(1024, 'Teste de Software', 2, '13:00', 'Quinta', 101),
+(1025, 'Engenharia de Software 1', 4, '13:00', 'Segunda', 101),
+(1026, 'Engenharia de Software 2', 4, '13:00', 'Ter�a', 101),
+(1027, 'Engenharia de Software 3', 4, '14:50', 'Segunda', 101),
+(1028, 'Laborat�rio de Engenharia de Software', 4, '14:50', 'Quarta', 101),
+(1029, 'Ingl�s 1', 4, '14:50', 'Sexta', 101),
+(1030, 'Ingl�s 2', 2, '14:50', 'Ter�a', 101),
+(1031, 'Ingl�s 3', 2, '13:00', 'Sexta', 101),
+(1032, 'Ingl�s 4', 2, '13:00', 'Segunda', 101),
+(1033, 'Ingl�s 5', 2, '13:00', 'Ter�a', 101),
+(1034, 'Ingl�s 6', 2, '13:00', 'Quinta', 101),
+(1035, 'Sociedade e Tecnologia', 2, '14:50', 'Ter�a', 101),
+(1036, 'Intera��o Humano Computador', 4, '14:50', 'Ter�a', 101),
+(1037, 'Estat�stica Aplicada', 4, '14:50', 'Quarta', 101),
+(1038, 'Laborat�rio de Redes de Computadores', 4, '14:50', 'Sexta', 101),
+(1039, 'Intelig�ncia Artificial', 4, '13:00', 'Quarta', 101),
+(1040, 'Programa��o para Mainframes', 4, '14:50', 'Quarta', 101)
 
 INSERT INTO disciplina VALUES
-(1041, 'Programação DSM', 4, '13:00', '16:30', 'Segunda', 102)
+(1041, 'Programa��o DSM', 4, '13:00', 'Segunda', 102)
 
 
 -- Valores de teste para tabela Conteudo
@@ -779,16 +922,16 @@ INSERT INTO conteudo VALUES
 (100009, 'Fundamentos SQL', 1002),
 (100010, 'Criando o Banco SQL', 1002),
 (100011, 'Estrutura Sequencial', 1003),
-(100012, 'Estrutura de Decisão', 1003),
-(100013, 'Estrutura de Repetição', 1003),
-(100014, 'Programação Estruturada', 1003),
+(100012, 'Estrutura de Decis�o', 1003),
+(100013, 'Estrutura de Repeti��o', 1003),
+(100014, 'Programa��o Estruturada', 1003),
 (100015, 'Fluxograma e Teste de mesa', 1003)
 
 
 
 
 '
-teste
+
 SELECT d.nome, d.qtd_aulas, CONVERT(varchar, d.horario, 8) AS horario, d.dia
 FROM disciplina d, curso c
 WHERE d.curso_codigo = c.codigo
