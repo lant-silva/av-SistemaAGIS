@@ -17,6 +17,5 @@
 			<!--<li class="menu-item"><a href="${pageContext.request.contextPath}/disciplina">Disciplina</a></li>-->
 		</ul>
 	</nav>
-	<footer>Desenvolvido por Davi De Queiroz e Luiz Antonio</footer>
 </body>
 </html>

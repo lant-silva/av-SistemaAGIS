@@ -54,6 +54,7 @@
 							<th>Nome</th>
 							<th>Qtd. Aulas</th>
 							<th>Horário de Início</th>
+							<th>Horário de Término</th>
 							<th>Dia</th>
 							<th>Situação</th>
 						</tr>
@@ -63,13 +64,16 @@
 							<tr>
 								<td>
 									<div>
-										<input type="checkbox" name="disciplinasSelecionadas"
+										<c:if test="${d.situacao eq 'Não cursado' or d.situacao eq 'Reprovado'}">
+											<input type="checkbox" name="disciplinasSelecionadas"
 											value="${d.disciplina.codigo}">
+										</c:if>
 									</div>
 								</td>
 								<td><c:out value="${d.disciplina.nome}" /></td>
 								<td><c:out value="${d.disciplina.qtdAulas}" /></td>
-								<td><c:out value="${d.disciplina.horario}" /></td>
+								<td><c:out value="${d.disciplina.horarioInicio}" /></td>
+								<td><c:out value="${d.disciplina.horarioFim}" /></td>
 								<td><c:out value="${d.disciplina.diaSemana}" /></td>
 								<td><c:out value="${d.situacao}" /></td>
 							</tr>
@@ -84,7 +88,6 @@
 		</div>
 	</form>
 <script>
-
 
 </script>
 </body>

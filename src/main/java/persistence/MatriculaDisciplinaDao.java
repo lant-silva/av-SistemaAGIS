@@ -22,13 +22,14 @@ public class MatriculaDisciplinaDao implements IDisciplina{
 	@Override
 	public String inserirMatricula(String ra, int codigoMatricula, int codigoDisciplina) throws SQLException, ClassNotFoundException {
 		Connection c = gDao.getConnection();
-		String sql = "CALL sp_inserirmatricula(?,?,?)";
+		String sql = "CALL sp_inserirmatricula(?,?,?,?)";
 		CallableStatement cs = c.prepareCall(sql);
 		cs.setString(1, ra);
-		cs.setInt(2, codigoDisciplina);
-		cs.registerOutParameter(3, Types.VARCHAR);
+		cs.setInt(2, codigoMatricula);
+		cs.setInt(3, codigoDisciplina);
+		cs.registerOutParameter(4, Types.VARCHAR);
 		cs.execute();
-		String saida = cs.getString(3);
+		String saida = cs.getString(4);
 		cs.close();
 		c.close();
 		return saida;
@@ -50,7 +51,8 @@ public class MatriculaDisciplinaDao implements IDisciplina{
 			d.setCodigo(rs.getInt("codigo"));
 			d.setNome(rs.getString("nome"));
 			d.setQtdAulas(rs.getInt("qtd_aulas"));
-			d.setHorario(rs.getString("horario"));
+			d.setHorarioInicio(rs.getString("horario_inicio"));
+			d.setHorarioFim(rs.getString("horario_fim"));
 			d.setDiaSemana(rs.getString("dia"));
 			d.setCursoCodigo(rs.getInt("curso_codigo"));
 			m.setDisciplina(d);

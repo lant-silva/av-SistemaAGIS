@@ -13,7 +13,8 @@ public class Disciplina {
 	int codigo;
 	String nome;
 	int qtdAulas;
-	String horario;
+	String horarioInicio;
+	String horarioFim;
 	String diaSemana;
 	int cursoCodigo;
 }
