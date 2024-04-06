@@ -171,59 +171,54 @@
 	</div>
 
 	<!-- Botão Listar Alunos -->
-	<div align="center">
-		<c:if test="${not empty alunos}">
-			<table class="table-round">
-				<thead>
-					<tr>
-						<th>CPF</th>
-						<th>RA</th>
-						<th>Nome</th>
-						<th>Nome Social</th>
-						<th>Data Nasc.</th>
-						<th>Email Pessoal</th>
-						<th>Email Corporativo</th>
-						<th>Data Segundo Grau</th>
-						<th>Inst. Segundo Grau</th>
-						<th>Pontuação Vestibular</th>
-						<th>Posição Vestibular</th>
-						<th>Ano de Ingresso</th>
-						<th>Semestre de Ingresso</th>
-						<th>Semestre de Graduação</th>
-						<th>Semestre Limite</th>
-						<th>Curso</th>
-					</tr>
-				</thead>
-				<tbody>
-					<c:forEach var="a" items="${alunos}">
-						<tr>
-							<td><c:out value="${a.cpf}" /></td>
-							<td><c:out value="${a.ra}" /></td>
-							<td><c:out value="${a.nome}" /></td>
-							<td><c:out value="${a.nomeSocial}" /></td>
-							<td><c:out value="${a.dataNasc}" /></td>
-      					    <td id="listaTelefones">
-            					<c:forEach var="t" items="${telefones}">
-                					<li>${t}</li>
-          						</c:forEach>
-        					</td>
-							<td><c:out value="${a.emailPessoal}" /></td>
-							<td><c:out value="${a.emailCorporativo}" /></td>
-							<td><c:out value="${a.dataSegundoGrau}" /></td>
-							<td><c:out value="${a.instituicaoSegundoGrau}" /></td>
-							<td><c:out value="${a.pontuacaoVestibular}" /></td>
-							<td><c:out value="${a.posicaoVestibular}" /></td>
-							<td><c:out value="${a.anoIngresso}" /></td>
-							<td><c:out value="${a.semestreIngresso}" /></td>
-							<td><c:out value="${a.semestreGraduacao}" /></td>
-							<td><c:out value="${a.anoLimite}" /></td>
-							<td><c:out value="${a.curso.sigla}" /></td>
-						</tr>
-					</c:forEach>
-				</tbody>
-			</table>
-		</c:if>
-	</div>
+<div align="center">
+    <c:if test="${not empty alunos}">
+        <table class="table-round">
+            <thead>
+                <tr>
+                    <th>CPF</th>
+                    <th>RA</th>
+                    <th>Nome</th>
+                    <th>Nome Social</th>
+                    <th>Data Nasc.</th>
+                    <th>Email Pessoal</th>
+                    <th>Email Corporativo</th>
+                    <th>Data Segundo Grau</th>
+                    <th>Inst. Segundo Grau</th>
+                    <th>Pontuação Vestibular</th>
+                    <th>Posição Vestibular</th>
+                    <th>Ano de Ingresso</th>
+                    <th>Semestre de Ingresso</th>
+                    <th>Semestre de Graduação</th>
+                    <th>Semestre Limite</th>
+                    <th>Curso</th>
+                </tr>
+            </thead>
+            <tbody>
+                <c:forEach var="a" items="${alunos}">
+                    <tr>
+                        <td><c:out value="${a.cpf}" /></td>
+                        <td><c:out value="${a.ra}" /></td>
+                        <td><c:out value="${a.nome}" /></td>
+                        <td><c:out value="${a.nomeSocial}" /></td>
+                        <td><c:out value="${a.dataNasc}" /></td>
+                        <td><c:out value="${a.emailPessoal}" /></td>
+                        <td><c:out value="${a.emailCorporativo}" /></td>
+                        <td><c:out value="${a.dataSegundoGrau}" /></td>
+                        <td><c:out value="${a.instituicaoSegundoGrau}" /></td>
+                        <td><c:out value="${a.pontuacaoVestibular}" /></td>
+                        <td><c:out value="${a.posicaoVestibular}" /></td>
+                        <td><c:out value="${a.anoIngresso}" /></td>
+                        <td><c:out value="${a.semestreIngresso}" /></td>
+                        <td><c:out value="${a.semestreGraduacao}" /></td>
+                        <td><c:out value="${a.anoLimite}" /></td>
+                        <td><c:out value="${a.curso.sigla}" /></td>
+                    </tr>
+                </c:forEach>
+            </tbody>
+        </table>
+    </c:if>
+</div>
 <script>
         document.getElementById('adicionarTelefone').addEventListener('click', function() {
         	event.preventDefault();
