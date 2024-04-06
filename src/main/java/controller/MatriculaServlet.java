@@ -2,6 +2,7 @@ package controller;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,6 +48,10 @@ public class MatriculaServlet extends HttpServlet {
 		}
 		
 		 */
+		LocalDate dataAtual = LocalDate.now();
+		boolean intervaloSemestre = validarDataSemestral(dataAtual);
+		
+		request.setAttribute("intervalo", intervaloSemestre);
 		RequestDispatcher rd = request.getRequestDispatcher("matricula.jsp");
 		rd.forward(request, response);
 	}
@@ -65,6 +70,7 @@ public class MatriculaServlet extends HttpServlet {
 		// Saída
 		String saida="";
 		String erro="";
+		boolean listar = false;
 		Matricula matricula = new Matricula();
 		Aluno a = new Aluno();
 		List<Disciplina> disciplinas = new ArrayList<>();
@@ -79,6 +85,11 @@ public class MatriculaServlet extends HttpServlet {
 				inserirMatricula(disciplinasSelecionadas, ra);
 				saida = "Matricula finalizada";
 			}
+			if(cmd.contains("Consultar Matricula")) {
+				a.setRa(ra);
+				matriculaDisciplinas = listarDisciplinas(ra);
+				listar = true;
+			}
 		} catch (SQLException | ClassNotFoundException e) {		
 			erro = e.getMessage();
 		} finally {
@@ -86,6 +97,7 @@ public class MatriculaServlet extends HttpServlet {
 			request.setAttribute("erro", erro);
 			request.setAttribute("disciplinas", matriculaDisciplinas);
 			request.setAttribute("aluno", a);
+			request.setAttribute("listar", listar);
 			
 			RequestDispatcher rd = request.getRequestDispatcher("matricula.jsp");
 			rd.forward(request, response);
@@ -128,6 +140,19 @@ public class MatriculaServlet extends HttpServlet {
 		List<MatriculaDisciplinas> md = new ArrayList<>();
 		md = mdDao.listarSituacao(alunoCpf);
 		return md;
+	}
+	
+	private boolean validarDataSemestral(LocalDate dataAtual) {
+		LocalDate semestre1Inicio = LocalDate.of(LocalDate.now().getYear(), 1, 14);
+		LocalDate semestre1Final = LocalDate.of(LocalDate.now().getYear(), 1, 22);
+		LocalDate semestre2Inicio = LocalDate.of(LocalDate.now().getYear(), 7, 14);
+		LocalDate semestre2Final = LocalDate.of(LocalDate.now().getYear(), 7, 22);
+		
+		if((dataAtual.isAfter(semestre1Inicio) && dataAtual.isBefore(semestre1Final)) || (dataAtual.isAfter(semestre2Inicio) && dataAtual.isBefore(semestre2Final))) {
+			return true;
+		}else{
+			return false;
+		}
 	}
 
 }

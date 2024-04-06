@@ -11,7 +11,8 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Matricula {
 	int codigo;
-	String turno;
 	String alunoRa;
+	String turno;
+	String dataMatricula;
 	int codigoCurso;
 }

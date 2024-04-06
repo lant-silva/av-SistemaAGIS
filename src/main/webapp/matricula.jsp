@@ -15,6 +15,7 @@
 </header>
 </head>
 <body>
+	<h4 align="center">*período de matrícula: 15 a 21 de Janeiro / 15 a 21 de Julho</h4>
 	<form action="matricula" method="post">
 		<div align="center" class="container">
 			<tr>
@@ -22,9 +23,14 @@
 					name="ra" placeholder="R.A" value="${aluno.ra }" maxlength="9"
 					oninput="this.value = this.value.replace(/[^0-9]/g, '')">
 				<td />
+				<c:if test="${intervalo}">
+					<td><input type="submit" id="botao" name="botao"
+						value="Iniciar Matricula">
+					<td />
+				</c:if>
 				<td><input type="submit" id="botao" name="botao"
-					value="Iniciar Matricula">
-				<td />
+					value="Consultar Matricula">
+				</td>
 			</tr>
 
 		</div>
@@ -46,7 +52,7 @@
 		</div>
 		</br>
 		<div align="center">
-			<c:if test="${not empty disciplinas }">
+			<c:if test="${not empty disciplinas and listar eq 'false'}">
 				<table id="listaDisciplinas" class="table_round" align="center">
 					<thead>
 						<tr>
@@ -85,10 +91,41 @@
 					</tbody>
 				</table>
 			</c:if>
+			
+			<c:if test="${not empty disciplinas and listar eq 'true'}">
+				<table id="listaDisciplinas" class="table_round" align="center">
+					<thead>
+						<tr>
+							<th></th>
+							<th>Nome</th>
+							<th>Qtd. Aulas</th>
+							<th>Horário de Início</th>
+							<th>Horário de Término</th>
+							<th>Dia</th>
+							<th>Situação</th>
+						</tr>
+					</thead>
+					<tbody>
+						<c:forEach var="d" items="${disciplinas }">
+							<tr>
+								<c:if test="${d.situacao eq 'Em curso' or d.situacao eq 'Aprovado' }">
+									<td><c:out value="${d.disciplina.nome}" /></td>
+									<td><c:out value="${d.disciplina.qtdAulas}" /></td>
+									<td><c:out value="${d.disciplina.horarioInicio}" /></td>
+									<td><c:out value="${d.disciplina.horarioFim}" /></td>
+									<td><c:out value="${d.disciplina.diaSemana}" /></td>
+									<td><c:out value="${d.situacao}" /></td>
+								</c:if>
+							</tr>
+						</c:forEach>
+						</br>
+						<td><input type="submit" id="botao" name="botao"
+							value="Confirmar Matricula">
+						<td />
+					</tbody>
+				</table>
+			</c:if>
 		</div>
 	</form>
-<script>
-
-</script>
 </body>
 </html>

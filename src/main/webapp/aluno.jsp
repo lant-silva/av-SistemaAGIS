@@ -30,7 +30,7 @@
 					<tr />
 					<tr>
 						<td colspan="3"><input class="input_data" type="number"
-							id="ra" name="ra" placeholder="RA"
+							id="ra" name="ra" placeholder="RA" disabled
 							value='<c:out value="${aluno.ra}"></c:out>'>
 						<td />
 					<tr />
@@ -55,18 +55,17 @@
 							id="telefone" name="telefone" placeholder="Telefone" 
 							value='<c:out value="${aluno.ra}"></c:out>'>
 						<td />
-						
-						
-						
 						<td>
 							<input type="submit" id="adicionarTelefone" name="botao" value="+">
 						<td />
 						<td>
 							<input type="submit" id="removerTelefone" name="botao" value="-">
 						<td />
-						<ul id="listaTelefones" name="listaTelefones">
-							
-						</ul>
+      					<td id="listaTelefones" name="listaTelefones">
+            				<c:forEach var="telefone" items="${telefones}">
+                				<li>${telefone}</li>
+          					</c:forEach>
+        				</td>
 					<tr />
 					<tr>
 						<td colspan="4"><input class="input_data" type="text"
@@ -106,19 +105,6 @@
 							min="0" max="999999999" id="posicaoVestibular"
 							name="posicaoVestibular" placeholder="Posição no Vestibular"
 							value='<c:out value="${aluno.posicaoVestibular}"></c:out>'>
-						</td>
-					</tr>
-					<tr>
-						<td colspan="4"><input class="input_data" type="number"
-							min="2000" max="2025" id="anoIngresso" name="anoIngresso"
-							placeholder="Ano de Ingresso"
-							value='<c:out value="${aluno.anoIngresso}"></c:out>'></td>
-					</tr>
-					<tr>
-						<td colspan="4"><input class="input_data" type="number"
-							min="1" max="2" id="semestreIngresso" name="semestreIngresso"
-							placeholder="Semestre de Ingresso"
-							value='<c:out value="${aluno.semestreIngresso}"></c:out>'>
 						</td>
 					</tr>
 					<tr>
@@ -187,7 +173,7 @@
 	<!-- Botão Listar Alunos -->
 	<div align="center">
 		<c:if test="${not empty alunos}">
-			<table class="table_round">
+			<table class="table-round">
 				<thead>
 					<tr>
 						<th>CPF</th>
@@ -216,10 +202,11 @@
 							<td><c:out value="${a.nome}" /></td>
 							<td><c:out value="${a.nomeSocial}" /></td>
 							<td><c:out value="${a.dataNasc}" /></td>
-							<td>
-                                <button onclick="window.location.href='listaTelefone?aluno=${a.cpf}'">Telefones</button>
-
-                            </td>
+      					    <td id="listaTelefones">
+            					<c:forEach var="t" items="${telefones}">
+                					<li>${t}</li>
+          						</c:forEach>
+        					</td>
 							<td><c:out value="${a.emailPessoal}" /></td>
 							<td><c:out value="${a.emailCorporativo}" /></td>
 							<td><c:out value="${a.dataSegundoGrau}" /></td>
@@ -250,11 +237,13 @@
             removerTelefone(telefone);
         });
 
-        function adicionarTelefone(telefone) {
-            var listaTelefones = document.getElementById('listaTelefones');
-            var novoTelefoneItem = document.createElement('li');
-            novoTelefoneItem.textContent = telefone;
-            listaTelefones.appendChild(novoTelefoneItem);
+        function adicionarTelefone() {
+            var telefone = document.getElementById("telefone").value;
+            var listaTelefones = document.getElementById("listaTelefones");
+            var novoTelefone = document.createElement("li");
+            novoTelefone.textContent = telefone;
+            listaTelefones.appendChild(novoTelefone);
+            document.getElementById("telefone").value = "";
         }
 
         function removerTelefone(telefone) {

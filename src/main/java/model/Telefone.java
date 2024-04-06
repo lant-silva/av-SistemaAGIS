@@ -7,6 +7,5 @@ import lombok.Setter;
 @Setter
 public class Telefone {
 	String telefone;
-	Aluno aluno ;
-	
+	Aluno aluno;
 }

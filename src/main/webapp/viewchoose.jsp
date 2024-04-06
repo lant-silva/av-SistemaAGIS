@@ -24,7 +24,7 @@ poderá realizar a matricula
 	</br>
 	<div class="menu">
 		<li><a href="secretaria.jsp">Visão Secretaria</a></li>
-		<li><a href="matricula.jsp">Visão Aluno</a></li>
+		<li><a href="${pageContext.request.contextPath}/matricula">Visão Aluno</a></li>
 	</div>
 </div>
 </body>

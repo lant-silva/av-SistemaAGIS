@@ -12,7 +12,7 @@ import java.util.List;
 import model.Aluno;
 import model.Telefone;
 
-public class TelefoneDao implements ITelefone<Telefone>{
+public class TelefoneDao implements IIud<Telefone>, ICrud<Telefone>{
 	private GenericDao gDao;
 	
 	public TelefoneDao(GenericDao gDao) {
@@ -34,13 +34,14 @@ public class TelefoneDao implements ITelefone<Telefone>{
 		c.close();
 	}
 	
+	@Override
 	public String iud(String acao, Telefone a) throws SQLException, ClassNotFoundException {
 		Connection c = gDao.getConnection();
-		String sql = "CALL sp_iudtelefone (?,?,?,?)";
+		String sql = "CALL sp_iud_aluno_telefone (?,?,?,?)";
 		CallableStatement cs = c.prepareCall(sql);
 		cs.setString(1, acao);
-		cs.setString(2,a.getTelefone());
-		cs.setString(3, a.getAluno().getCpf());
+		cs.setString(2, a.getTelefone());
+		cs.setString(3, a.getAluno().getRa());
 		cs.registerOutParameter(4, Types.VARCHAR);
 		cs.execute();
 		String saida = cs.getString(4);
@@ -48,95 +49,114 @@ public class TelefoneDao implements ITelefone<Telefone>{
 		c.close();
 		return saida;
 	}
-	
-	@Override	
-	public void inserir(Telefone t) throws SQLException, ClassNotFoundException {
-		Connection c = gDao.getConnection();
-		String sql = "INSERT INTO aluno_telefone VALUES (?,?)";
-		PreparedStatement ps = c.prepareStatement(sql);
-		ps.setString(1, t.getTelefone());
-		ps.setString(2, t.getAluno().getRa());
-		ps.execute();
-		ps.close();
-		c.close();
-	}
-
-	@Override
-	public void atualizar(Telefone t) throws SQLException, ClassNotFoundException {
-		Connection c = gDao.getConnection();
-		String sql = "UPDATE telefone SET telefone = ? WHERE aluno_ra = ?";
-		PreparedStatement ps = c.prepareStatement(sql);
-		ps.setString(1, t.getTelefone());
-		ps.setString(2, t.getAluno().getRa());
-		ps.execute();
-		ps.close();
-		c.close();
-	}
-
-	@Override
-	public void excluir(Telefone t) throws SQLException, ClassNotFoundException {
-		Connection c = gDao.getConnection();
-		String sql = "DELETE aluno_telefone WHERE telefone = ?   AND  aluno_ra = ? ";
-		PreparedStatement ps = c.prepareStatement(sql);
-		ps.setString(1, t.getTelefone());
-		ps.setString(2, t.getAluno().getRa());
-		ps.execute();
-		ps.close();
-		c.close();
-		
-	}
 
 	@Override
 	public Telefone consultar(Telefone t) throws SQLException, ClassNotFoundException {
 		Connection c = gDao.getConnection();
-		String sql = "SELECT * FROM aluno_telefone WHERE telefone = ? AND aluno_ra = ?";
+		String sql = "SELECT * FROM aluno_telefone WHERE aluno_ra = ?";
 		PreparedStatement ps = c.prepareStatement(sql);
-		ps.setString(1,  t.getTelefone());
-		 ps.setString(2, t.getAluno().getRa());
-		 ResultSet rs = ps.executeQuery();
-		 
-		 Telefone telefone = null;
-		 if(rs.next()) {
-			 telefone = new Telefone();
-			 telefone.setTelefone(rs.getString("telefone"));
-		
-			 Aluno aluno = new Aluno();
-			 aluno.setRa(rs.getString("aluno_ra"));
-			 
-			 telefone.setAluno(aluno);
-		 }
-		 
-		 rs.close();
-		 ps.close();
-		 c.close();
-		 
-		 return telefone;
+		ps.setString(1, t.getAluno().getRa());
+		ResultSet rs = ps.executeQuery();
+		if(rs.next()) {
+			t.setTelefone(rs.getString("telefone"));
+			
+		}
+	}
+
+	@Override
+	public List<Telefone> listar() throws SQLException, ClassNotFoundException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
-	public List<Telefone> listar() throws SQLException, ClassNotFoundException {
-        List<Telefone> telefones = new ArrayList<>();        
-        
-        	Connection c = gDao.getConnection();
-            String sql = "SELECT * FROM aluno_telefone";
-            PreparedStatement   ps = c.prepareStatement(sql);
-            ResultSet  rs = ps.executeQuery();
-
-            while (rs.next()) {
-                Telefone telefone = new Telefone();
-                telefone.setTelefone(rs.getString("telefone"));
-
-                Aluno aluno = new Aluno();
-                aluno.setRa(rs.getString("aluno_ra"));
-                
-                telefone.setAluno(aluno);
-
-                telefones.add(telefone);
-            }
-        
-		rs.close();
-		ps.close();
-		c.close();
-        return telefones;
-    }		
+//	@Override	
+//	public void inserir(Telefone t) throws SQLException, ClassNotFoundException {
+//		Connection c = gDao.getConnection();
+//		String sql = "INSERT INTO aluno_telefone VALUES (?,?)";
+//		PreparedStatement ps = c.prepareStatement(sql);
+//		ps.setString(1, t.getTelefone());
+//		ps.setString(2, t.getAluno().getRa());
+//		ps.execute();
+//		ps.close();
+//		c.close();
+//	}
+//
+//	@Override
+//	public void atualizar(Telefone t) throws SQLException, ClassNotFoundException {
+//		Connection c = gDao.getConnection();
+//		String sql = "UPDATE telefone SET telefone = ? WHERE aluno_ra = ?";
+//		PreparedStatement ps = c.prepareStatement(sql);
+//		ps.setString(1, t.getTelefone());
+//		ps.setString(2, t.getAluno().getRa());
+//		ps.execute();
+//		ps.close();
+//		c.close();
+//	}
+//
+//	@Override
+//	public void excluir(Telefone t) throws SQLException, ClassNotFoundException {
+//		Connection c = gDao.getConnection();
+//		String sql = "DELETE aluno_telefone WHERE telefone = ?   AND  aluno_ra = ? ";
+//		PreparedStatement ps = c.prepareStatement(sql);
+//		ps.setString(1, t.getTelefone());
+//		ps.setString(2, t.getAluno().getRa());
+//		ps.execute();
+//		ps.close();
+//		c.close();
+//		
+//	}
+//
+//	@Override
+//	public Telefone consultar(Telefone t) throws SQLException, ClassNotFoundException {
+//		Connection c = gDao.getConnection();
+//		String sql = "SELECT * FROM aluno_telefone WHERE telefone = ? AND aluno_ra = ?";
+//		PreparedStatement ps = c.prepareStatement(sql);
+//		ps.setString(1,  t.getTelefone());
+//		 ps.setString(2, t.getAluno().getRa());
+//		 ResultSet rs = ps.executeQuery();
+//		 
+//		 Telefone telefone = null;
+//		 if(rs.next()) {
+//			 telefone = new Telefone();
+//			 telefone.setTelefone(rs.getString("telefone"));
+//		
+//			 Aluno aluno = new Aluno();
+//			 aluno.setRa(rs.getString("aluno_ra"));
+//			 
+//			 telefone.setAluno(aluno);
+//		 }
+//		 
+//		 rs.close();
+//		 ps.close();
+//		 c.close();
+//		 
+//		 return telefone;
+//	}
+//	
+//	public List<Telefone> listar() throws SQLException, ClassNotFoundException {
+//        List<Telefone> telefones = new ArrayList<>();        
+//        
+//        	Connection c = gDao.getConnection();
+//            String sql = "SELECT * FROM aluno_telefone";
+//            PreparedStatement   ps = c.prepareStatement(sql);
+//            ResultSet  rs = ps.executeQuery();
+//
+//            while (rs.next()) {
+//                Telefone telefone = new Telefone();
+//                telefone.setTelefone(rs.getString("telefone"));
+//
+//                Aluno aluno = new Aluno();
+//                aluno.setRa(rs.getString("aluno_ra"));
+//                
+//                telefone.setAluno(aluno);
+//
+//                telefones.add(telefone);
+//            }
+//        
+//		rs.close();
+//		ps.close();
+//		c.close();
+//        return telefones;
+//    }		
 
 }

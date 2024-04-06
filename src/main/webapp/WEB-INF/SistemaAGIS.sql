@@ -593,8 +593,8 @@ BEGIN
 END
 
 
-	DECLARE @codigomatricula INT = 1000001
-SELECT * FROM dbo.fn_ultimamatricula(@codigomatricula)
+	DECLARE @codigomatricula INT = 200214519
+SELECT * FROM dbo.fn_listarultimamatricula(@codigomatricula)
 
 -- Função Listar Ultima Matrícula
 ------------------------------------------------------------------------
@@ -673,7 +673,7 @@ delete matricula
 where codigo = 1000002
 
 delete matricula_disciplina
-where codigo_matricula = 1000002
+where codigo_matricula = 1000004
 
 SELECT * FROM aluno
 SELECT * FROM matricula
