@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import model.Disciplina;
+import model.Matricula;
 import model.MatriculaDisciplinas;
 
 public class MatriculaDisciplinaDao implements IDisciplina{
@@ -78,6 +79,22 @@ public class MatriculaDisciplinaDao implements IDisciplina{
 		cs.close();
 		c.close();
 		return saida;
+	}
+
+	@Override
+	public Matricula consultarUltimaMatricula(String alunoRa) throws SQLException, ClassNotFoundException {
+		Connection c = gDao.getConnection();
+		String sql = "SELECT TOP 1 codigo, aluno_ra, data_matricula FROM matricula WHERE aluno_ra = ? ORDER BY codigo DESC";
+		PreparedStatement ps = c.prepareStatement(sql);
+		ps.setString(1, alunoRa);
+		ResultSet rs = ps.executeQuery();
+		Matricula m = new Matricula();
+		if(rs.next()) {
+			m.setCodigo(rs.getInt("codigo"));
+			m.setDataMatricula(rs.getString("data_matricula"));
+			m.setAlunoRa(rs.getString("aluno_ra"));
+		}
+		return m;
 	}	
 
 }

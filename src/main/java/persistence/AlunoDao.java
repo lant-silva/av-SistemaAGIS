@@ -22,7 +22,7 @@ public class AlunoDao implements ICrud<Aluno>, IIud<Aluno>{
 	@Override
 	public String iud(String acao, Aluno a) throws SQLException, ClassNotFoundException {
 		Connection c = gDao.getConnection();
-		String sql = "CALL sp_iudaluno (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		String sql = "CALL sp_iudaluno (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 		CallableStatement cs = c.prepareCall(sql);
 		cs.setString(1, acao);
 		cs.setString(2, a.getCpf());
@@ -30,20 +30,21 @@ public class AlunoDao implements ICrud<Aluno>, IIud<Aluno>{
 		cs.setString(4, a.getNome());
 		cs.setString(5, a.getNomeSocial());
 		cs.setString(6, a.getDataNasc());
-		cs.setString(7, a.getEmailPessoal());
-		cs.setString(8, a.getEmailCorporativo());
-		cs.setString(9, a.getDataSegundoGrau());
-		cs.setString(10, a.getInstituicaoSegundoGrau());
-		cs.setDouble(11, a.getPontuacaoVestibular());
-		cs.setInt(12, a.getPosicaoVestibular());
-		cs.setString(13, a.getAnoIngresso());
-		cs.setString(14, a.getSemestreIngresso());
+		cs.setString(7, a.getTelefoneCelular());
+		cs.setString(8, a.getTelefoneResidencial());
+		cs.setString(9, a.getEmailPessoal());
+		cs.setString(10, a.getEmailCorporativo());
+		cs.setString(11, a.getDataSegundoGrau());
+		cs.setString(12, a.getInstituicaoSegundoGrau());
+		cs.setDouble(13, a.getPontuacaoVestibular());
+		cs.setInt(14, a.getPosicaoVestibular());
 		cs.setString(15, a.getSemestreGraduacao());
 		cs.setString(16, a.getAnoLimite());
 		cs.setInt(17, a.getCurso().getCodigo());
-		cs.registerOutParameter(18, Types.VARCHAR);
+		cs.setString(18, a.getTurno());
+		cs.registerOutParameter(19, Types.VARCHAR);
 		cs.execute();
-		String saida = cs.getString(18);
+		String saida = cs.getString(19);
 		cs.close();
 		c.close();
 		return saida;
@@ -62,6 +63,8 @@ public class AlunoDao implements ICrud<Aluno>, IIud<Aluno>{
 			a.setNome(rs.getString("nome"));
 			a.setNomeSocial(rs.getString("nome_social"));
 			a.setDataNasc(rs.getString("data_nasc"));
+			a.setTelefoneCelular(rs.getString("telefone_celular"));
+			a.setTelefoneResidencial(rs.getString("telefone_residencial"));
 			a.setEmailPessoal(rs.getString("email_pessoal"));
 			a.setEmailCorporativo(rs.getString("email_corporativo"));
 			a.setDataSegundoGrau(rs.getString("data_segundograu"));
@@ -75,6 +78,7 @@ public class AlunoDao implements ICrud<Aluno>, IIud<Aluno>{
 			Curso cur = new Curso();
 			cur.setCodigo(rs.getInt("curso_codigo"));
 			a.setCurso(cur);
+			a.setTurno(rs.getString("turno"));
 		}
 		rs.close();
 		ps.close();
@@ -96,6 +100,8 @@ public class AlunoDao implements ICrud<Aluno>, IIud<Aluno>{
 			a.setNome(rs.getString("nome"));
 			a.setNomeSocial(rs.getString("nome_social"));
 			a.setDataNasc(rs.getString("data_nasc"));
+			a.setTelefoneCelular(rs.getString("telefone_celular"));
+			a.setTelefoneResidencial(rs.getString("telefone_residencial"));
 			a.setEmailPessoal(rs.getString("email_pessoal"));
 			a.setEmailCorporativo(rs.getString("email_corporativo"));
 			a.setDataSegundoGrau(rs.getString("data_segundograu"));
@@ -110,6 +116,7 @@ public class AlunoDao implements ICrud<Aluno>, IIud<Aluno>{
 			cur.setCodigo(rs.getInt("curso_codigo"));
 			cur.setSigla(rs.getString("curso_sigla"));
 			a.setCurso(cur);
+			a.setTurno(rs.getString("turno"));
 			alunos.add(a);
 		}
 		rs.close();

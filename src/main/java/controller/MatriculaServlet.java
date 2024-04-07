@@ -1,6 +1,7 @@
 package controller;
 
 import java.io.IOException;
+import java.sql.Date;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -50,16 +51,17 @@ public class MatriculaServlet extends HttpServlet {
 		 */
 		LocalDate dataAtual = LocalDate.now();
 		boolean intervaloSemestre = validarDataSemestral(dataAtual);
-		
-		request.setAttribute("intervalo", intervaloSemestre);
-		RequestDispatcher rd = request.getRequestDispatcher("matricula.jsp");
-		rd.forward(request, response);
+		String ra = request.getParameter("ra");
+			request.setAttribute("intervalo", intervaloSemestre);
+			RequestDispatcher rd = request.getRequestDispatcher("matricula.jsp");
+			rd.forward(request, response);			
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// Entrada
 		String cmd = request.getParameter("botao");
 		String ra = request.getParameter("ra");
+		Matricula matricula = new Matricula();
 		String[] disciplinasSelecionadas = request.getParameterValues("disciplinasSelecionadas");
 		if(disciplinasSelecionadas != null) {
 			for(String str : disciplinasSelecionadas) {			
@@ -71,15 +73,19 @@ public class MatriculaServlet extends HttpServlet {
 		String saida="";
 		String erro="";
 		boolean listar = false;
-		Matricula matricula = new Matricula();
 		Aluno a = new Aluno();
 		List<Disciplina> disciplinas = new ArrayList<>();
 		List<MatriculaDisciplinas> matriculaDisciplinas = new ArrayList<>();
 		
 		try {
 			if(cmd.contains("Iniciar Matricula")) {
-				a.setRa(ra);
-				matriculaDisciplinas = listarDisciplinas(ra);
+				matricula = ultimaMatricula(ra);	
+				if(validarDataMatricula(matricula.getDataMatricula())) {
+					a.setRa(ra);
+					matriculaDisciplinas = listarDisciplinas(ra);					
+				}else {
+					erro = "Matrícula já foi realizada";
+				}
 			}
 			if(cmd.contains("Confirmar Matricula")) {
 				inserirMatricula(disciplinasSelecionadas, ra);
@@ -154,5 +160,31 @@ public class MatriculaServlet extends HttpServlet {
 			return false;
 		}
 	}
-
+	
+	private Matricula ultimaMatricula(String ra) throws ClassNotFoundException, SQLException {
+		GenericDao gDao = new GenericDao();
+		MatriculaDisciplinaDao mdDao = new MatriculaDisciplinaDao(gDao);
+		return mdDao.consultarUltimaMatricula(ra);
+	}
+	
+	private boolean validarDataMatricula(String dataMatricula) {
+		Date dataSql = Date.valueOf(dataMatricula);
+		boolean validacao = false;
+		LocalDate data = dataSql.toLocalDate();
+		LocalDate semestre1Inicio = LocalDate.of(LocalDate.now().getYear(), 1, 14);
+		LocalDate semestre1Final = LocalDate.of(LocalDate.now().getYear(), 1, 22);
+		LocalDate semestre2Inicio = LocalDate.of(LocalDate.now().getYear(), 7, 14);
+		LocalDate semestre2Final = LocalDate.of(LocalDate.now().getYear(), 7, 22);
+		
+		if((data.isAfter(semestre1Inicio)) && data.isBefore(semestre1Final)) {
+			validacao = false;
+		}else{
+			if(data.isAfter(semestre2Inicio) && data.isBefore(semestre2Final)) {				
+				validacao = false;				
+			}else {
+				validacao = true;
+			}
+		}
+		return validacao;
+	}
 }

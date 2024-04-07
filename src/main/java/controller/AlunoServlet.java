@@ -14,7 +14,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Aluno;
 import model.Curso;
-import model.Telefone;
 import persistence.AlunoDao;
 import persistence.CursoDao;
 import persistence.GenericDao;
@@ -59,6 +58,8 @@ public class AlunoServlet extends HttpServlet {
 				String nome = request.getParameter("nome");
 				String nomeSocial = request.getParameter("nomeSocial");
 				String dataNasc = request.getParameter("dataNasc");
+				String telefoneCelular = request.getParameter("telefoneCelular");
+				String telefoneResidencial = request.getParameter("telefoneResidencial");
 				String emailPessoal = request.getParameter("emailPessoal");
 				String emailCorporativo = request.getParameter("emailCorporativo");
 				String dataSegundoGrau = request.getParameter("dataSegundoGrau");
@@ -69,12 +70,7 @@ public class AlunoServlet extends HttpServlet {
 				String semestreIngresso = request.getParameter("semestreIngresso");
 				String semestreGraduacao = request.getParameter("semestreGraduacao");
 				String curso = request.getParameter("curso");
-				String[] telefones = request.getParameterValues("listaTelefones");
-				if(telefones != null) {
-					for(String str : telefones) {
-						System.out.println(str);
-					}
-				}
+				String turno = request.getParameter("turno");
 				
 				//saida
 				String saida="";
@@ -82,7 +78,6 @@ public class AlunoServlet extends HttpServlet {
 				Aluno a = new Aluno();
 				List<Aluno> alunos = new ArrayList<>();
 				List<Curso> cursos = new ArrayList<>();
-				List<Telefone> telefoness = new ArrayList<>();
 				Curso cr = new Curso();
 				
 			try {
@@ -105,6 +100,8 @@ public class AlunoServlet extends HttpServlet {
 					a.setNome(nome);
 					a.setNomeSocial(nomeSocial);
 					a.setDataNasc(dataNasc);
+					a.setTelefoneCelular(telefoneCelular);
+					a.setTelefoneResidencial(telefoneResidencial);
 					a.setEmailPessoal(emailPessoal);
 					a.setEmailCorporativo(emailCorporativo);
 					a.setDataSegundoGrau(dataSegundoGrau);
@@ -121,7 +118,7 @@ public class AlunoServlet extends HttpServlet {
 						erro = e.getMessage();
 					}
 					a.setCurso(cr);
-					
+					a.setTurno(turno);
 				}
 				
 					if(cmd.contains("Cadastrar")) {

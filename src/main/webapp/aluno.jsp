@@ -21,7 +21,7 @@
 				<table>
 					<tr>
 						<td colspan="3"><input class="input_data" type="number"
-							min="0" max="99999999999" id="cpf" name="cpf" placeholder="CPF"
+							min="0" max="99999999999" id="cpf" name="cpf" placeholder="CPF" 
 							value='<c:out value="${aluno.cpf}"></c:out>'>
 						<td />
 						<td><input type="submit" id="botao" name="botao"
@@ -51,22 +51,16 @@
 							value='<c:out value="${aluno.dataNasc}"></c:out>'></td>
 					</tr>
 					<tr>
-						<td colspan="3"><input class="input_data" type="text"
-							id="telefone" name="telefone" placeholder="Telefone" 
-							value='<c:out value="${aluno.ra}"></c:out>'>
+						<td colspan="3"><input class="input_data" type="number"
+							id="telefoneCelular" name="telefoneCelular" placeholder="Telefone Celular"
+							value='<c:out value="${aluno.telefoneCelular}"></c:out>'>
 						<td />
-						<td>
-							<input type="submit" id="adicionarTelefone" name="botao" value="+">
+					</tr>
+					<tr>
+						<td colspan="3"><input class="input_data" type="number"
+							id="telefoneResidencial" name="telefoneResidencial" placeholder="Telefone Residencial"
+							value='<c:out value="${aluno.telefoneResidencial}"></c:out>'>
 						<td />
-						<td>
-							<input type="submit" id="removerTelefone" name="botao" value="-">
-						<td />
-      					<td id="listaTelefones" name="listaTelefones">
-            				<c:forEach var="telefone" items="${telefones}">
-                				<li>${telefone}</li>
-          					</c:forEach>
-        				</td>
-					<tr />
 					<tr>
 						<td colspan="4"><input class="input_data" type="text"
 							maxlength="200" id="emailPessoal" name="emailPessoal"
@@ -81,7 +75,7 @@
 					</tr>
 					<tr>
 						<td colspan="4"><input class="input_data" type="date"
-							id="dataSegundoGrau" name="dataSegundoGrau"
+							id="dataSegundoGrau" name="dataSegundoGrau" 
 							value='<c:out value="${aluno.dataSegundoGrau}"></c:out>'>
 						</td>
 					</tr>
@@ -96,19 +90,19 @@
 					<tr>
 						<td colspan="4"><input class="input_data" type="number"
 							min="0" max="1000" id="pontuacaoVestibular"
-							name="pontuacaoVestibular" placeholder="Pontuação no Vestibular"
+							name="pontuacaoVestibular" placeholder="Pontuação no Vestibular" 
 							value='<c:out value="${aluno.pontuacaoVestibular}"></c:out>'>
 						</td>
 					</tr>
 					<tr>
 						<td colspan="4"><input class="input_data" type="number"
 							min="0" max="999999999" id="posicaoVestibular"
-							name="posicaoVestibular" placeholder="Posição no Vestibular"
+							name="posicaoVestibular" placeholder="Posição no Vestibular" 
 							value='<c:out value="${aluno.posicaoVestibular}"></c:out>'>
 						</td>
 					</tr>
 					<tr>
-						<td colspan="4"><input class="input_data" type="number"
+						<td colspan="4"><input class="input_data" type="text"
 							min="1" maxlength="6" id="semestreGraduacao"
 							name="semestreGraduacao" placeholder="Semestre de Graduação"
 							value='<c:out value="${aluno.semestreGraduacao}"></c:out>'>
@@ -138,6 +132,12 @@
 								</c:forEach>
 						</select>
 						<td />
+					<tr>
+						<td colspan="4"><input class="input_data" type="text"
+							maxlength="6" id="turno" name="turno"
+							placeholder="Turno" disabled
+							value='<c:out value="${aluno.turno}"></c:out>'></td>
+					</tr>	
 					<tr />
 					<tr>
 						<td><input type="submit" id="botao" name="botao"
@@ -181,6 +181,8 @@
 						<th>Nome</th>
 						<th>Nome Social</th>
 						<th>Data Nasc.</th>
+						<th>Telefone Celular</th>
+						<th>Telefone Residencial</th>
 						<th>Email Pessoal</th>
 						<th>Email Corporativo</th>
 						<th>Data Segundo Grau</th>
@@ -192,6 +194,7 @@
 						<th>Semestre de Graduação</th>
 						<th>Semestre Limite</th>
 						<th>Curso</th>
+						<th>Turno</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -202,11 +205,8 @@
 							<td><c:out value="${a.nome}" /></td>
 							<td><c:out value="${a.nomeSocial}" /></td>
 							<td><c:out value="${a.dataNasc}" /></td>
-      					    <td id="listaTelefones">
-            					<c:forEach var="t" items="${telefones}">
-                					<li>${t}</li>
-          						</c:forEach>
-        					</td>
+							<td><c:out value="${a.telefoneCelular}" /></td>
+							<td><c:out value="${a.telefoneResidencial}" /></td>
 							<td><c:out value="${a.emailPessoal}" /></td>
 							<td><c:out value="${a.emailCorporativo}" /></td>
 							<td><c:out value="${a.dataSegundoGrau}" /></td>
@@ -218,41 +218,12 @@
 							<td><c:out value="${a.semestreGraduacao}" /></td>
 							<td><c:out value="${a.anoLimite}" /></td>
 							<td><c:out value="${a.curso.sigla}" /></td>
+							<td><c:out value="${a.turno}" /></td>
 						</tr>
 					</c:forEach>
 				</tbody>
 			</table>
 		</c:if>
 	</div>
-<script>
-        document.getElementById('adicionarTelefone').addEventListener('click', function() {
-        	event.preventDefault();
-            var telefone = document.getElementById('telefone').value;
-            adicionarTelefone(telefone);
-        });
-
-        document.getElementById('removerTelefone').addEventListener('click', function() {
-        	event.preventDefault();
-            var telefone = document.getElementById('telefone').value;
-            removerTelefone(telefone);
-        });
-
-        function adicionarTelefone() {
-            var telefone = document.getElementById("telefone").value;
-            var listaTelefones = document.getElementById("listaTelefones");
-            var novoTelefone = document.createElement("li");
-            novoTelefone.textContent = telefone;
-            listaTelefones.appendChild(novoTelefone);
-            document.getElementById("telefone").value = "";
-        }
-
-        function removerTelefone(telefone) {
-        	var listaTelefones = document.getElementById('listaTelefones');
-            var ultimoTelefone = listaTelefones.lastElementChild;
-            if (ultimoTelefone) {
-                listaTelefones.removeChild(ultimoTelefone);
-            }
-        }
-    </script>
 </body>
 </html>

@@ -25,8 +25,10 @@ ra						CHAR(9)			NOT NULL,
 nome					VARCHAR(100)	NOT NULL,
 nome_social				VARCHAR(100)	NULL,
 data_nasc				DATE			NOT NULL,
+telefone_celular		CHAR(11)		NOT NULL,
+telefone_residencial	CHAR(11)		NULL,
 email_pessoal			VARCHAR(200)	NOT NULL,
-email_corporativo		VARCHAR(200)	NOT NULL,
+email_corporativo		VARCHAR(200)	NOT NULL	UNIQUE,
 data_segundograu		DATE			NOT NULL,
 instituicao_segundograu	VARCHAR(100)	NOT NULL,
 pontuacao_vestibular	INT				NOT NULL,
@@ -35,16 +37,10 @@ ano_ingresso			CHAR(4)			NOT NULL,
 semestre_ingresso		CHAR(1)			NOT NULL,
 semestre_graduacao		CHAR(6)			NOT NULL,
 ano_limite				CHAR(6)			NOT NULL,
-curso_codigo			INT				NOT NULL
+curso_codigo			INT				NOT NULL,
+turno					VARCHAR(10)		NOT NULL	DEFAULT('Tarde')
 PRIMARY KEY(ra)
 FOREIGN KEY(curso_codigo) REFERENCES curso(codigo)
-)
-
-CREATE TABLE aluno_telefone(
-telefone				CHAR(11)		NOT NULL,
-aluno_ra				CHAR(9)		NOT NULL
-PRIMARY KEY(telefone, aluno_ra)
-FOREIGN KEY(aluno_ra) REFERENCES aluno(ra)
 )
 
 CREATE TABLE curso(
@@ -78,7 +74,8 @@ FOREIGN KEY(codigo_disciplina) REFERENCES disciplina(codigo)
 
 CREATE TABLE matricula(
 codigo					INT				NOT NULL,
-aluno_ra				CHAR(9)			NOT NULL
+aluno_ra				CHAR(9)			NOT NULL,
+data_matricula			DATE			NOT NULL
 PRIMARY KEY(codigo)
 FOREIGN KEY(aluno_ra) REFERENCES aluno(ra)
 )
@@ -116,6 +113,7 @@ IF LEN(@cpf) <> 11
 BEGIN
 	SET @valido = 0
 	RAISERROR('CPF Inválido', 16, 1)
+	RETURN
 END
 
 WHILE(@cont <= 9)	
@@ -219,6 +217,23 @@ END
 SET @anolimite = FORMATMESSAGE('%s/%s', @ano, @sem)
 END
 
+-- Procedure de geração do ano e semestre de ingresso
+---------------------------------------------------------------------------------
+CREATE PROCEDURE sp_geraringresso(@ano CHAR(4) OUTPUT, @sem CHAR(1) OUTPUT)
+AS
+DECLARE @mes INT
+
+SELECT @ano = YEAR(GETDATE())
+SELECT @mes = MONTH(GETDATE()) 
+IF(@mes <= 6)
+BEGIN
+	SET @sem = 1
+END
+ELSE
+BEGIN
+	SET @sem = 2
+END
+
 -- Procedure IUD Aluno
 ----------------------------------------------------------------------------------------------
 
@@ -229,23 +244,27 @@ CREATE PROCEDURE sp_iudaluno(@acao CHAR(1),
 				 		     @nome VARCHAR(100),
 				 		     @nomesocial VARCHAR(100),
 				 		     @datanasc DATE,
+							 @telefonecelular CHAR(11),
+							 @telefoneresidencial CHAR(11),
 				 		     @emailpessoal VARCHAR(200),
 				 		     @emailcorporativo VARCHAR(200),
 				 		     @datasegundograu DATE,
 				 		     @instituicaosegundograu VARCHAR(100),
 				 		     @pontuacaovestibular INT,
 				 		     @posicaovestibular INT,
-				 		     @anoingresso CHAR(4),
-				 		     @semestreingresso CHAR(1),
 				 		     @semestregraduacao CHAR(6),
 				 		     @anolimite CHAR(6) OUTPUT,
 							 @cursocodigo INT,
+							 @turno VARCHAR(10),
 				 		     @saida VARCHAR(300) OUTPUT)
 AS
 DECLARE @cpfvalido BIT = 0
 DECLARE @idadevalida BIT = 0
 DECLARE @codigomatricula INT = 0
+DECLARE @anoingresso CHAR(4) = 0
+DECLARE @semestreingresso CHAR(1) = 0
 
+SET @turno = 'Tarde'
 -- Validar CPF
 
 -- Se o cpf é válido
@@ -257,14 +276,6 @@ BEGIN
 	RETURN
 END
 
--- Se já existe um cpf igual ao inserido no sistema
-IF EXISTS(SELECT cpf FROM aluno WHERE cpf = @cpf)
-BEGIN
-	RAISERROR('O CPF inserido já existe dentro do sistema', 16, 1)
-	RETURN
-END	
-
-
 -- Validar Idade
 
 EXEC sp_validaridade @datanasc, @idadevalida OUTPUT 
@@ -274,6 +285,9 @@ BEGIN
 	RAISERROR('Idade inválida', 16 ,1)
 	RETURN
 END
+
+-- Gerar o ano/semestre de ingresso do aluno
+EXEC sp_geraringresso @anoingresso OUTPUT, @semestreingresso OUTPUT
 
 -- Gerar o RA do aluno
 EXEC sp_gerarra @anoingresso, @semestreingresso, @ra OUTPUT 
@@ -287,37 +301,49 @@ PRINT @anolimite
 
 IF(UPPER(@acao) = 'I')
 BEGIN
-	INSERT INTO aluno (cpf, ra, nome, nome_social, data_nasc, email_pessoal, email_corporativo,
-	data_segundograu, instituicao_segundograu, pontuacao_vestibular, posicao_vestibular,
-	ano_ingresso, semestre_ingresso, semestre_graduacao, ano_limite, curso_codigo) VALUES
-	(@cpf,
-	 @ra,
-	 @nome,
-	 @nomesocial,
-	 @datanasc,
-	 @emailpessoal,
-	 @emailcorporativo,
-	 @datasegundograu,
-	 @instituicaosegundograu,
-	 @pontuacaovestibular,
-	 @posicaovestibular,
-	 @anoingresso,
-	 @semestreingresso,
-	 @semestregraduacao,
-	 @anolimite,
-	 @cursocodigo)
+	IF EXISTS(SELECT cpf FROM aluno WHERE cpf = @cpf)
+	BEGIN
+		RAISERROR('O CPF inserido já existe dentro do sistema', 16, 1)
+		RETURN
+	END
+	ELSE
+	BEGIN
+		INSERT INTO aluno (cpf, ra, nome, nome_social, data_nasc, telefone_celular, telefone_residencial, email_pessoal, email_corporativo,
+		data_segundograu, instituicao_segundograu, pontuacao_vestibular, posicao_vestibular,
+		ano_ingresso, semestre_ingresso, semestre_graduacao, ano_limite, curso_codigo, turno) VALUES
+		(@cpf,
+		 @ra,
+		 @nome,
+		 @nomesocial,
+		 @datanasc,
+		 @telefonecelular,
+		 @telefoneresidencial,
+		 @emailpessoal,
+		 @emailcorporativo,
+		 @datasegundograu,
+		 @instituicaosegundograu,
+		 @pontuacaovestibular,
+		 @posicaovestibular,
+		 @anoingresso,
+		 @semestreingresso,
+		 @semestregraduacao,
+		 @anolimite,
+		 @cursocodigo,
+		 @turno)
 
-	 EXEC sp_gerarmatricula @ra, @codigomatricula
-	SET @saida = 'Aluno inserido'
+		 EXEC sp_gerarmatricula @ra, @codigomatricula
+		 SET @saida = 'Aluno inserido'
+	END
 END
 ELSE 
 IF(UPPER(@acao) = 'U')
 BEGIN 
 	UPDATE aluno
-	SET ra = @ra,
-		nome = @nome,
+	SET nome = @nome,
 		nome_social = @nomesocial,
 		data_nasc = @datanasc,
+		telefone_celular = @telefonecelular,
+		telefone_residencial = @telefoneresidencial,
 		email_pessoal = @emailpessoal,
 		email_corporativo = @emailcorporativo,
 		data_segundograu = @datasegundograu,
@@ -328,7 +354,8 @@ BEGIN
 		semestre_ingresso = @semestreingresso,
 		semestre_graduacao = @semestregraduacao,
 		ano_limite = @anolimite,
-		curso_codigo = @cursocodigo
+		curso_codigo = @cursocodigo,
+		turno = @turno
 	WHERE cpf = @cpf
 	SET @saida = 'Aluno atualizado'
 END
@@ -338,67 +365,6 @@ BEGIN
 END
 
 -- Fim da procedure
-
--- Procedure do aluno_telefone
-------------------------------------------------------------------------------------
-CREATE PROCEDURE sp_iud_aluno_telefone
-    @acao CHAR(1),
-    @telefone CHAR(11),
-    @aluno_ra CHAR(9),
-    @saida VARCHAR(100) OUTPUT
-AS
-BEGIN 
-    IF (@acao = 'I')
-    BEGIN
-        -- Verifica se o telefone já está cadastrado para o aluno
-        IF EXISTS (SELECT 1 FROM aluno_telefone WHERE telefone = @telefone AND aluno_ra = @aluno_ra)
-        BEGIN
-            SET @saida = 'Telefone já cadastrado para o aluno'
-            RETURN
-        END
-
-        -- Insere o telefone do aluno
-        INSERT INTO aluno_telefone (telefone, aluno_ra)
-        VALUES (@telefone, @aluno_ra)
-        SET @saida = 'Telefone cadastrado para o aluno com sucesso'
-    END
-    ELSE IF (@acao = 'U')
-    BEGIN
-        -- Verifica se o telefone existe para o aluno
-        IF NOT EXISTS (SELECT 1 FROM aluno_telefone WHERE telefone = @telefone AND aluno_ra = @aluno_ra)
-        BEGIN
-            SET @saida = 'Telefone não encontrado para o aluno'
-            RETURN
-        END
-		 
-        -- Atualiza o telefone do aluno
-        UPDATE aluno_telefone
-        SET telefone = @telefone
-        WHERE aluno_ra = @aluno_ra
-        SET @saida = 'Telefone do aluno atualizado com sucesso'
-    END
-    ELSE IF (@acao = 'D')
-    BEGIN
-        -- Verifica se o telefone existe para o aluno
-        IF NOT EXISTS (SELECT 1 FROM aluno_telefone WHERE telefone = @telefone AND aluno_ra = @aluno_ra)
-        BEGIN
-            SET @saida = 'Telefone não encontrado para o aluno'
-            RETURN
-        END
-
-        -- Exclui o telefone do aluno
-        DELETE FROM aluno_telefone
-        WHERE telefone = @telefone AND aluno_ra = @aluno_ra
-        SET @saida = 'Telefone do aluno excluído com sucesso'
-    END
-    ELSE
-    BEGIN
-        RAISERROR('Operação inválida', 16, 1)
-        RETURN
-    END
-END
---fim da procedure
-------------------------------------------------------------------------------------------
 
 -- Procedure IUD Matrícula 
 ------------------------------------------------------------------------
@@ -471,6 +437,10 @@ AS
 BEGIN
 	DECLARE @cont INT
 	DECLARE @novocodigo INT = 0
+	DECLARE @ano CHAR(4)
+	DECLARE @sem CHAR(1)
+
+	EXEC sp_geraringresso @ano OUTPUT, @sem OUTPUT
 
 	SELECT @cont = COUNT(*)
 	FROM matricula
@@ -488,7 +458,7 @@ BEGIN
 		ORDER BY codigo DESC
 
 		INSERT INTO matricula VALUES
-		(@novocodigo, @ra)
+		(@novocodigo, @ra, GETDATE())
 
 
 		-- Como a lógica para atualização da matricula será realizada por outra procedure,
@@ -501,19 +471,21 @@ BEGIN
 	END
 	ELSE -- A primeira matricula do aluno
 	BEGIN
-		IF NOT EXISTS(SELECT * FROM matricula) --Se nenhuma outra matrícula existir (garante que o primeiro aluno a ser inserido 
+		IF NOT EXISTS(SELECT * FROM matricula) --Se nenhuma outra matrícula existir (garante que tenha um codigo para ser inserido)
 		BEGIN
 			SET @codigomatricula = 1000001
 		END
 		ELSE
 		BEGIN
+			DECLARE @codigomatricula INT
 			SELECT TOP 1 @codigomatricula = codigo + 1
 			FROM matricula
 			ORDER BY codigo DESC
+			PRINT @codigomatricula
 		END
 
 		INSERT INTO matricula VALUES
-		(@codigomatricula, @ra)
+		(@codigomatricula, @ra, '01-01-2024')
 
 		INSERT INTO matricula_disciplina (codigo_matricula, codigo_disciplina, situacao)
 		SELECT * FROM dbo.fn_matriculainicial(@codigomatricula)
@@ -536,9 +508,10 @@ WHERE md.codigo_matricula = @codigomatricula
 	AND md.codigo_disciplina = d.codigo
 	AND d.dia = @diasemana
 	AND	(md.situacao = 'Em curso')
-	AND ((@horarioinicio BETWEEN d.horario_inicio AND d.horario_fim) OR (@horariofim BETWEEN d.horario_inicio AND d.horario_fim) OR (d.horario_inicio BETWEEN @horarioinicio AND @horariofim) OR (d.horario_fim BETWEEN @horarioinicio AND @horariofim))
-
-	--AND ((@horarioinicio >= d.horario_inicio) AND (@horarioinicio <= d.horario_fim) AND (@horariofim >= d.horario_inicio) AND (@horariofim <= d.horario_fim))
+	AND ((@horarioinicio BETWEEN d.horario_inicio AND d.horario_fim) 
+	OR (@horariofim BETWEEN d.horario_inicio AND d.horario_fim) 
+	OR (d.horario_inicio BETWEEN @horarioinicio AND @horariofim) 
+	OR (d.horario_fim BETWEEN @horarioinicio AND @horariofim))
 
 print @conflitoexiste
 																	
@@ -571,6 +544,7 @@ BEGIN
 	WHERE d.curso_codigo = c.codigo
 		AND a.curso_codigo = c.codigo
 		AND m.codigo = @codigomatricula
+		AND m.aluno_ra = a.ra
 	RETURN
 END
 
@@ -586,14 +560,16 @@ AS
 BEGIN
 	INSERT INTO @tabela (codigo_matricula, codigo_disciplina, situacao)
 	SELECT @codigomatricula AS codigo_matricula, md.codigo_disciplina, md.situacao 
-	FROM matricula_disciplina md, matricula m
+	FROM matricula_disciplina md, matricula m, aluno a, curso c
 	WHERE md.codigo_matricula = @codigomatricula	
 		AND m.codigo = @codigomatricula
+		AND a.curso_codigo = c.codigo
+		AND m.aluno_ra = a.ra
 	RETURN
 END
 
 
-	DECLARE @codigomatricula INT = 200214519
+	DECLARE @codigomatricula INT = 202419871
 SELECT * FROM dbo.fn_listarultimamatricula(@codigomatricula)
 
 -- Função Listar Ultima Matrícula
@@ -608,26 +584,44 @@ horario_inicio TIME,
 horario_fim TIME,
 dia VARCHAR(20),
 curso_codigo INT,
+data_matricula CHAR(6),
 situacao VARCHAR(50)
 )
 AS
 BEGIN
 	DECLARE @codigomatricula INT
+	DECLARE @ano CHAR(4)
+	DECLARE @sem CHAR(1)
+	DECLARE @data CHAR(6)
+
+	SELECT @ano = YEAR(data_matricula) FROM matricula WHERE aluno_ra = @ra
+	SELECT @sem = MONTH(data_matricula) FROM matricula WHERE aluno_ra = @ra
+	IF(@sem <= 6)
+	BEGIN
+		SET @sem = 1
+	END
+	ELSE
+	BEGIN
+		SET @sem = 2
+	END
+	SET @data = FORMATMESSAGE('%s/%s', @ano, @sem)
 
 	SELECT TOP 1 @codigomatricula = codigo 
-	FROM matricula WHERE aluno_ra = @ra 
+	FROM matricula WHERE aluno_ra = @ra
 	ORDER BY codigo DESC
 
-	INSERT INTO @tabela (codigo_matricula, codigo, nome, qtd_aulas, horario_inicio, horario_fim, dia, curso_codigo, situacao)
+	INSERT INTO @tabela (codigo_matricula, codigo, nome, qtd_aulas, horario_inicio, horario_fim, dia, curso_codigo, data_matricula, situacao)	
 	SELECT CAST(md.codigo_matricula AS VARCHAR), CAST(d.codigo AS VARCHAR),
 		   d.nome, CAST(d.qtd_aulas AS VARCHAR),
 		   d.horario_inicio, d.horario_fim, d.dia AS dia, 
-		   CAST(d.curso_codigo AS VARCHAR), md.situacao
-	FROM matricula_disciplina md, disciplina d, aluno a, matricula m
+		   CAST(d.curso_codigo AS VARCHAR), @data, md.situacao
+	FROM matricula_disciplina md, disciplina d, aluno a, matricula m, curso c
 	WHERE m.codigo = @codigomatricula
-		AND m.codigo = md.codigo_matricula
-		AND d.codigo = md.codigo_disciplina
-		AND m.aluno_ra = @ra
+		AND m.aluno_ra = a.ra
+		AND md.codigo_matricula = @codigomatricula
+		AND md.codigo_disciplina = d.codigo
+		AND a.curso_codigo = c.codigo
+		AND d.curso_codigo = c.codigo
 	RETURN
 END
 -- View Alunos
@@ -635,9 +629,9 @@ END
 
 CREATE VIEW v_alunos
 AS
-SELECT a.cpf AS cpf, a.ra AS ra, a.nome AS nome, a.nome_social AS nome_social, a.data_nasc AS data_nasc, a.email_pessoal AS email_pessoal, a.email_corporativo AS email_corporativo, a.data_segundograu AS data_segundograu, 
+SELECT a.cpf AS cpf, a.ra AS ra, a.nome AS nome, a.nome_social AS nome_social, a.data_nasc AS data_nasc, a.telefone_celular AS telefone_celular, a.telefone_residencial AS telefone_residencial, a.email_pessoal AS email_pessoal, a.email_corporativo AS email_corporativo, a.data_segundograu AS data_segundograu, 
 	   a.instituicao_segundograu AS instituicao_segundograu, a.pontuacao_vestibular AS pontuacao_vestibular, a.posicao_vestibular AS posicao_vestibular, a.ano_ingresso AS ano_ingresso, a.semestre_ingresso AS semestre_ingresso,
-	   a.semestre_graduacao AS semestre_graduacao, a.ano_limite AS ano_limite, c.sigla AS curso_sigla, a.curso_codigo AS curso_codigo
+	   a.semestre_graduacao AS semestre_graduacao, a.ano_limite AS ano_limite, c.sigla AS curso_sigla, a.curso_codigo AS curso_codigo, a.turno AS turno
 FROM aluno a, curso c
 WHERE a.curso_codigo = c.codigo
 
@@ -648,7 +642,7 @@ SELECT * FROM v_alunos
 
 CREATE VIEW v_disciplinas
 AS
-SELECT d.codigo AS codigo, d.nome AS nome, d.qtd_aulas AS qtd_aulas, SUBSTRING(CAST(d.horario AS VARCHAR), 1, 5) AS horario, d.dia AS dia, d.curso_codigo AS curso_codigo
+SELECT d.codigo AS codigo, d.nome AS nome, d.qtd_aulas AS qtd_aulas, SUBSTRING(CAST(d.horario_inicio AS VARCHAR), 1, 5) AS horario_inicio, d.dia AS dia, d.curso_codigo AS curso_codigo
 FROM disciplina d, curso c
 WHERE d.curso_codigo = c.codigo
 
@@ -673,16 +667,16 @@ delete matricula
 where codigo = 1000002
 
 delete matricula_disciplina
-where codigo_matricula = 1000004
+where codigo_matricula = 1000001
 
 SELECT * FROM aluno
 SELECT * FROM matricula
-select * from matricula_disciplina
+select * from matricula_disciplina 
 
 
 
 DECLARE @saida VARCHAR(200)
-EXEC sp_iudaluno 'I', '52169314814', 0, 'fulano', 'fulano', '2000-01-01', 'fulano@email.com', 'fulano@email.com', '2000-01-01', 'instituicao', 800, 10, '2002', '1', '20051', '0', 101, @saida OUTPUT
+EXEC sp_iudaluno 'I', '52169314814', '202416795', 'fulano', 'fulano', '2000-01-01', 949973809, 940028922, 'fulano@email.com', 'fulano@email.com', '2000-01-01', 'asdasdasd', 800, 10, '20051', '2029/2', 101, 'Tarde', @saida OUTPUT
 PRINT @saida
 
 DECLARE @conflito BIT
@@ -695,11 +689,11 @@ WHERE codigo_matricula = 1000002
 	AND codigo_disciplina = 1003
 
 DECLARE @saida VARCHAR(200)
-EXEC sp_inserirmatricula '200214519', 1000002, 1001, @saida OUTPUT
+EXEC sp_inserirmatricula '202416679', 1000002, 1013, @saida OUTPUT
 PRINT @saida
 
 DECLARE @codigomatricula INT
-EXEC sp_gerarmatricula '200214519', @codigomatricula OUTPUT
+EXEC sp_gerarmatricula '202416679', @codigomatricula OUTPUT
 PRINT @codigomatricula
 
 SELECT * FROM matricula_disciplina WHERE codigo_matricula = 1000001

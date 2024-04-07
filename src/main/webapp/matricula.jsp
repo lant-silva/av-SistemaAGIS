@@ -96,7 +96,6 @@
 				<table id="listaDisciplinas" class="table_round" align="center">
 					<thead>
 						<tr>
-							<th></th>
 							<th>Nome</th>
 							<th>Qtd. Aulas</th>
 							<th>Horário de Início</th>
@@ -119,9 +118,6 @@
 							</tr>
 						</c:forEach>
 						</br>
-						<td><input type="submit" id="botao" name="botao"
-							value="Confirmar Matricula">
-						<td />
 					</tbody>
 				</table>
 			</c:if>
