@@ -51,13 +51,13 @@
 							value='<c:out value="${aluno.dataNasc}"></c:out>'></td>
 					</tr>
 					<tr>
-						<td colspan="3"><input class="input_data" type="number"
+						<td colspan="3"><input class="input_data" type="text"
 							id="telefoneCelular" name="telefoneCelular" placeholder="Telefone Celular"
 							value='<c:out value="${aluno.telefoneCelular}"></c:out>'>
 						<td />
 					</tr>
 					<tr>
-						<td colspan="3"><input class="input_data" type="number"
+						<td colspan="3"><input class="input_data" type="text"
 							id="telefoneResidencial" name="telefoneResidencial" placeholder="Telefone Residencial"
 							value='<c:out value="${aluno.telefoneResidencial}"></c:out>'>
 						<td />
@@ -144,8 +144,6 @@
 							value="Cadastrar"></td>
 						<td><input type="submit" id="botao" name="botao"
 							value="Alterar"></td>
-						<td><input type="submit" id="botao" name="botao"
-							value="Excluir"></td>
 						<td><input type="submit" id="botao" name="botao"
 							value="Listar"></td>
 					</tr>
