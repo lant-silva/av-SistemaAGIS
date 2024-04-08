@@ -28,7 +28,7 @@ data_nasc				DATE			NOT NULL,
 telefone_celular		CHAR(11)		NOT NULL,
 telefone_residencial	CHAR(11)		NULL,
 email_pessoal			VARCHAR(200)	NOT NULL,
-email_corporativo		VARCHAR(200)	NOT NULL	UNIQUE,
+email_corporativo		VARCHAR(200)	NULL,
 data_segundograu		DATE			NOT NULL,
 instituicao_segundograu	VARCHAR(100)	NOT NULL,
 pontuacao_vestibular	INT				NOT NULL,
@@ -369,10 +369,6 @@ END
 -- Procedure IUD Matrícula 
 ------------------------------------------------------------------------
 
-DECLARE @saida VARCHAR(200)
-EXEC sp_inserirmatricula '52169314814', 1000001, 1001, @saida OUTPUT
-PRINT @saida
-
 -- Início da procedure
 CREATE PROCEDURE sp_inserirmatricula(@ra CHAR(9), @codigomatricula INT, @codigodisciplina INT, @saida VARCHAR(200) OUTPUT)
 AS
@@ -416,20 +412,6 @@ END
 
 -- Procedimento Gerar matricula de um aluno
 -----------------------------------------------------------------------------------
-
-DECLARE @horarioinicio TIME = '14:50'
-DECLARE @horariofial TIME = '18:10'
-DECLARE @conflito BIT = 0
-IF('13:00' >= @horarioinicio OR '13:00' <= @horariofial)
-BEGIN
-	SET @conflito = 1
-END
-ELSE
-BEGIN
-	SET @conflito = 0
-END
-PRINT @conflito
-
 
 -- Início da procedure
 CREATE PROCEDURE sp_gerarmatricula(@ra CHAR(9), @codigomatricula INT OUTPUT)
@@ -657,7 +639,17 @@ SELECT c.codigo AS codigo, c.descricao AS descricao, c.codigo_disciplina AS codi
 FROM conteudo c, disciplina d
 WHERE c.codigo_disciplina = d.codigo
 
-SELECT * FROM v_conteudos
+SELECT * FROM v_conteudos WHERE codigo_disciplina = 1003
+
+-- View Cursos
+--------------------------------------------------------------------------------------
+
+CREATE VIEW v_cursos
+AS
+SELECT c.codigo AS codigo, c.nome AS nome, c.carga_horaria AS carga_horaria, c.sigla AS sigla, c.nota_enade AS nota_enade
+FROM curso c
+
+SELECT * FROM v_cursos
 
 -- IND04 - Inserções para teste
 --------------------------------------------------------------------------------------
@@ -672,8 +664,6 @@ where codigo_matricula = 1000001
 SELECT * FROM aluno
 SELECT * FROM matricula
 select * from matricula_disciplina 
-
-
 
 DECLARE @saida VARCHAR(200)
 EXEC sp_iudaluno 'I', '52169314814', '202416795', 'fulano', 'fulano', '2000-01-01', 949973809, 940028922, 'fulano@email.com', 'fulano@email.com', '2000-01-01', 'asdasdasd', 800, 10, '20051', '2029/2', 101, 'Tarde', @saida OUTPUT
@@ -776,10 +766,78 @@ INSERT INTO conteudo VALUES
 (100012, 'Estrutura de Decisão', 1003),
 (100013, 'Estrutura de Repetição', 1003),
 (100014, 'Programação Estruturada', 1003),
-(100015, 'Fluxograma e Teste de mesa', 1003)
+(100015, 'Fluxograma e Teste de mesa', 1003),
+(100016, 'Introdução à Matemática Discreta', 1004),
+(100017, 'Conceitos Fundamentais de Matemática Discreta', 1004),
+(100018, 'Teoria dos Conjuntos', 1004),
+(100019, 'Álgebra Booleana', 1004),
+(100020, 'Aplicações de Matemática Discreta em Computação', 1004),
+(100021, 'Introdução à Linguagem de Programação', 1005),
+(100022, 'Estruturas de Controle em Java', 1005),
+(100023, 'Funções e Procedimentos', 1005),
+(100024, 'Estruturas de Dados em Linguagem de Programação', 1005),
+(100025, 'Programação Orientada a Objetos', 1005),
+(100026, 'Introdução aos Algoritmos e Lógica de Programação', 1006),
+(100027, 'Estruturas de Dados Básicas', 1006),
+(100028, 'Algoritmos de Ordenação e Busca', 1006),
+(100029, 'Algoritmos Recursivos', 1006),
+(100030, 'Complexidade de Algoritmos', 1006),
+(100031, 'Introdução ao Desenvolvimento Mobile', 1007),
+(100032, 'Interfaces de Usuário em Dispositivos Móveis', 1007),
+(100033, 'Acesso a Dados em Dispositivos Móveis', 1007),
+(100034, 'Desenvolvimento de Aplicações Móveis Nativas', 1007),
+(100035, 'Desenvolvimento de Aplicações Móveis Multiplataforma', 1007),
+(100036, 'Conceitos Básicos de Empreendedorismo', 1008),
+(100037, 'Identificação de Oportunidades de Negócio', 1008),
+(100038, 'Plano de Negócios', 1008),
+(100039, 'Marketing e Vendas', 1008),
+(100040, 'Aspectos Legais e Financeiros do Empreendedorismo', 1008),
+(100041, 'Ética Profissional e Responsabilidade Social', 1009),
+(100042, 'Princípios Éticos na Área de Tecnologia', 1009),
+(100043, 'Impacto Social da Tecnologia', 1009),
+(100044, 'Desafios Éticos em TI', 1009),
+(100045, 'Sustentabilidade na Área de Tecnologia', 1009),
+(100046, 'Introdução à Administração', 1010),
+(100047, 'Funções Administrativas', 1010),
+(100048, 'Planejamento Estratégico', 1010),
+(100049, 'Organização e Controle', 1010),
+(100050, 'Gestão de Pessoas', 1010),
+(100051, 'Conceitos de Sistemas de Informação', 1011),
+(100052, 'Análise de Sistemas', 1011),
+(100053, 'Projeto de Sistemas de Informação', 1011),
+(100054, 'Desenvolvimento de Sistemas de Informação', 1011),
+(100055, 'Implementação e Manutenção de Sistemas de Informação', 1011),
+(100056, 'Governança de Tecnologia da Informação', 1012),
+(100057, 'Modelos de Governança de TI', 1012),
+(100058, 'Frameworks de Governança de TI', 1012),
+(100059, 'Implementação de Governança de TI', 1012),
+(100060, 'Avaliação de Governança de TI', 1012),
+(100061, 'Introdução às Redes de Computadores', 1013),
+(100062, 'Protocolos de Comunicação', 1013),
+(100063, 'Topologias de Redes', 1013),
+(100064, 'Administração de Redes', 1013),
+(100065, 'Segurança em Redes de Computadores', 1013),
+(100066, 'Princípios de Sistemas Operacionais', 1014),
+(100067, 'Gerenciamento de Processos', 1014),
+(100068, 'Gerenciamento de Memória', 1014),
+(100069, 'Sistemas de Arquivos', 1014),
+(100070, 'Segurança em Sistemas Operacionais', 1014),
+(100071, 'Administração Financeira', 1015),
+(100072, 'Matemática Financeira', 1015),
+(100073, 'Análise de Investimentos', 1015),
+(100074, 'Mercado Financeiro', 1015),
+(100075, 'Gestão de Riscos Financeiros', 1015),
+(100076, 'Arquitetura de Computadores', 1016),
+(100077, 'Organização de Computadores', 1016),
+(100078, 'Sistemas de Numeração e Codificação', 1016),
+(100079, 'Unidade Central de Processamento', 1016),
+(100080, 'Memória Principal', 1016),
+(10081, 'Componentes de Hardware', 1017),
+(10082, 'Periféricos de Entrada e Saída', 1017),
+(10083, 'Arquiteturas de Computadores', 1017),
+(10084, 'Manutenção e Montagem de Computadores', 1017),
+(10085, 'Diagnóstico e Solução de Problemas de Hardware', 1017),
 
-
- d
 
 '
 teste

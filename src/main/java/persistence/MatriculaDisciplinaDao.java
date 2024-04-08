@@ -95,6 +95,5 @@ public class MatriculaDisciplinaDao implements IDisciplina{
 			m.setAlunoRa(rs.getString("aluno_ra"));
 		}
 		return m;
-	}	
-
+	}
 }

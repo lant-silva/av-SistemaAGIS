@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="./css/styles.css">
 <title>AGIS - Matricula</title>
 <header>
-	<h1 align="center">Menu Aluno - Gerenciamento de Matricula</h1>
+	<h1 align="center">Gerenciamento de Matricula</h1>
 	<div>
 		<jsp:include page="menualuno.jsp" />
 	</div>
@@ -95,7 +95,7 @@
 			<c:if test="${not empty disciplinas and listar eq 'true'}">
 				<table id="listaDisciplinas" class="table_round" align="center">
 					<thead>
-						<tr>
+						<tr> 
 							<th>Nome</th>
 							<th>Qtd. Aulas</th>
 							<th>Horário de Início</th>

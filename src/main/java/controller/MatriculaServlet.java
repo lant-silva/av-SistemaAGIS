@@ -30,31 +30,12 @@ public class MatriculaServlet extends HttpServlet {
     }
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		/*
-		String erro = "";
-		List<Disciplina> disciplinas = new ArrayList<>();
-		
-		GenericDao gDao = new GenericDao();
-		DisciplinaDao dDao = new DisciplinaDao(gDao);
-		try {
-			disciplinas = dDao.listar();
-			for(Disciplina d : disciplinas) {
-				
-			}
-		} catch (ClassNotFoundException | SQLException e){
-			erro = e.getMessage();
-		} finally {
-			request.setAttribute("erro", erro);
-			request.setAttribute("disciplinas", disciplinas);
-		}
-		
-		 */
 		LocalDate dataAtual = LocalDate.now();
 		boolean intervaloSemestre = validarDataSemestral(dataAtual);
-		String ra = request.getParameter("ra");
-			request.setAttribute("intervalo", intervaloSemestre);
-			RequestDispatcher rd = request.getRequestDispatcher("matricula.jsp");
-			rd.forward(request, response);			
+//		String ra = request.getParameter("ra");
+		request.setAttribute("intervalo", intervaloSemestre);
+		RequestDispatcher rd = request.getRequestDispatcher("matricula.jsp");
+		rd.forward(request, response);			
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -74,7 +55,6 @@ public class MatriculaServlet extends HttpServlet {
 		String erro="";
 		boolean listar = false;
 		Aluno a = new Aluno();
-		List<Disciplina> disciplinas = new ArrayList<>();
 		List<MatriculaDisciplinas> matriculaDisciplinas = new ArrayList<>();
 		
 		try {
@@ -113,8 +93,8 @@ public class MatriculaServlet extends HttpServlet {
 	/**Realiza uma operação SQL para inserir, em uma nova matrícula, N disciplinas que serão cursadas pelo aluno. A função recebe um vetor de disciplinas e o RA do aluno como parâmetro,
 	 * o RA  
 	 * 
-	 * @param disciplinasSelecionadas
-	 * @param cpf
+	 * @param disciplinasSelecionadas - Vetor com todas as disciplinas selecionadas no proecsso de matricula
+	 * @param cpf - CPF de um aluno
 	 * @return String saída, indicando o resultado determinado da query 
 	 * @throws ClassNotFoundException
 	 * @throws SQLException
@@ -131,11 +111,11 @@ public class MatriculaServlet extends HttpServlet {
 		return saida;
 	}
 	
-	/**Lista todas as disciplinas disponíveis para um aluno matricular. A função assume que um aluno já possui uma matrícula, ver {@link controller.AlunoServlet.cadastrarAluno}
+	/**Lista todas as disciplinas disponíveis para um aluno matricular. A função assume que um aluno já possui uma matrícula.
 	 * 
 	 * 
-	 * @param alunoCpf
-	 * @return
+	 * @param alunoCpf - CPF de um aluno
+	 * @return Lista com todas as 
 	 * @throws ClassNotFoundException
 	 * @throws SQLException
 	 * @see cadastrarAluno
@@ -148,6 +128,11 @@ public class MatriculaServlet extends HttpServlet {
 		return md;
 	}
 	
+	/** Verifica se o sistema está dentro do período de matrícula (15 a 21 de Janeiro - 15 a 21 de Julho)
+	 * 
+	 * @param dataAtual - Data de hoje
+	 * @return Variavel booleana, para confirmar a validação
+	 */
 	private boolean validarDataSemestral(LocalDate dataAtual) {
 		LocalDate semestre1Inicio = LocalDate.of(LocalDate.now().getYear(), 1, 14);
 		LocalDate semestre1Final = LocalDate.of(LocalDate.now().getYear(), 1, 22);
@@ -161,12 +146,24 @@ public class MatriculaServlet extends HttpServlet {
 		}
 	}
 	
+	/** Consulta a ultima matrícula feita por um aluno, usando o seu RA como parâmetro
+	 * 
+	 * @param ra - RA de um aluno
+	 * @return A ultima matrícula feita por um aluno
+	 * @throws ClassNotFoundException
+	 * @throws SQLException
+	 */
 	private Matricula ultimaMatricula(String ra) throws ClassNotFoundException, SQLException {
 		GenericDao gDao = new GenericDao();
 		MatriculaDisciplinaDao mdDao = new MatriculaDisciplinaDao(gDao);
 		return mdDao.consultarUltimaMatricula(ra);
 	}
 	
+	/** Verifica se a matrícula já foi realizada no período atual de matrículas (Para impedir o aluno de realizar mais de uma matrícula por semestre)
+	 * 
+	 * @param dataMatricula - A data em que a matrícula foi realizada
+	 * @return Variavel booleana para confirmação da verificação
+	 */
 	private boolean validarDataMatricula(String dataMatricula) {
 		Date dataSql = Date.valueOf(dataMatricula);
 		boolean validacao = false;

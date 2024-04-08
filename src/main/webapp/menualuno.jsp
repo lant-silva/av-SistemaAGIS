@@ -9,7 +9,7 @@
 <body>
 	<nav id="menu">
 		<ul>
-			<li class="menu-item"><a href="viewchoose.jsp">Sair</a>
+			<li class="menu-item"><a href="viewchoose.jsp">Voltar</a>
 		</ul>
 	</nav>
 </body>

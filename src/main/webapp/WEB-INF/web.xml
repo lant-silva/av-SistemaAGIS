@@ -4,4 +4,14 @@
   <welcome-file-list>
     <welcome-file>viewchoose.jsp</welcome-file>
   </welcome-file-list>
+  <servlet>
+    <description></description>
+    <display-name>MatriculaSecretariaServlet</display-name>
+    <servlet-name>MatriculaSecretariaServlet</servlet-name>
+    <servlet-class>controller.MatriculaSecretariaServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>MatriculaSecretariaServlet</servlet-name>
+    <url-pattern>/secretariamatricula</url-pattern>
+  </servlet-mapping>
 </web-app>
