@@ -10,7 +10,6 @@
 <body>
 	<nav id="menu">
 		<ul>
-			<li class="menu-item"><a href="secretaria.jsp">Index</a></li>
 			<li class="menu-item"><a href="${pageContext.request.contextPath}/aluno">Aluno</a></li>
 			<li class="menu-item"><a href="${pageContext.request.contextPath}/matricula">Matricula</a></li>
 			<li class="menu-item right"><a href="viewchoose.jsp">Sair</a></li>
