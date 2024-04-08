@@ -654,47 +654,6 @@ SELECT * FROM v_cursos
 -- IND04 - Inserções para teste
 --------------------------------------------------------------------------------------
 
-delete aluno
-delete matricula
-where codigo = 1000002
-
-delete matricula_disciplina
-where codigo_matricula = 1000001
-
-SELECT * FROM aluno
-SELECT * FROM matricula
-select * from matricula_disciplina 
-
-DECLARE @saida VARCHAR(200)
-EXEC sp_iudaluno 'I', '52169314814', '202416795', 'fulano', 'fulano', '2000-01-01', 949973809, 940028922, 'fulano@email.com', 'fulano@email.com', '2000-01-01', 'asdasdasd', 800, 10, '20051', '2029/2', 101, 'Tarde', @saida OUTPUT
-PRINT @saida
-
-DECLARE @conflito BIT
-EXEC sp_verificarconflitohorario 1000002, 4, 'Segunda', '16:40', '18:20', @conflito OUTPUT
-PRINT @conflito
-
-UPDATE matricula_disciplina
-SET situacao = 'Em curso'
-WHERE codigo_matricula = 1000002
-	AND codigo_disciplina = 1003
-
-DECLARE @saida VARCHAR(200)
-EXEC sp_inserirmatricula '202416679', 1000002, 1013, @saida OUTPUT
-PRINT @saida
-
-DECLARE @codigomatricula INT
-EXEC sp_gerarmatricula '202416679', @codigomatricula OUTPUT
-PRINT @codigomatricula
-
-SELECT * FROM matricula_disciplina WHERE codigo_matricula = 1000001
-
-UPDATE matricula_disciplina
-SET situacao = 'Em curso'
-WHERE codigo_disciplina = 1001
-
-select * from curso
-select * from curso c, disciplina d where d.curso_codigo = c.codigo
-
 -- Valores de teste para tabela Curso
 INSERT INTO curso VALUES
 (101, 'Análise e Desenvolvimento de Sistemas', 2800, 'ADS', 5),
@@ -835,13 +794,4 @@ INSERT INTO conteudo VALUES
 (10081, 'Componentes de Hardware', 1017),
 (10082, 'Periféricos de Entrada e Saída', 1017),
 (10083, 'Arquiteturas de Computadores', 1017),
-(10084, 'Manutenção e Montagem de Computadores', 1017),
-(10085, 'Diagnóstico e Solução de Problemas de Hardware', 1017),
-
-
-'
-teste
-SELECT d.nome, d.qtd_aulas, CONVERT(varchar, d.horario, 8) AS horario, d.dia
-FROM disciplina d, curso c
-WHERE d.curso_codigo = c.codigo
-ORDER BY nome ASC
+(10084, 'Manutenção e Montagem de Computadores', 1017)
