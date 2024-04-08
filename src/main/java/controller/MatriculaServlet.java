@@ -32,7 +32,6 @@ public class MatriculaServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		LocalDate dataAtual = LocalDate.now();
 		boolean intervaloSemestre = validarDataSemestral(dataAtual);
-//		String ra = request.getParameter("ra");
 		request.setAttribute("intervalo", intervaloSemestre);
 		RequestDispatcher rd = request.getRequestDispatcher("matricula.jsp");
 		rd.forward(request, response);			
