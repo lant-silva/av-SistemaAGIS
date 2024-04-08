@@ -164,6 +164,11 @@ BEGIN
 	SET @valido = 0
 END
 ELSE
+IF(DATEDIFF(YEAR,@dtnasc,GETDATE())> 120)
+BEGIN
+	SET @valido = 0
+END
+ELSE
 BEGIN
 	SET @valido = 1
 END
@@ -653,8 +658,7 @@ SELECT * FROM v_cursos
 -- Valores de teste para tabela Curso
 INSERT INTO curso VALUES
 (101, 'Análise e Desenvolvimento de Sistemas', 2800, 'ADS', 5),
-(102, 'Desenvolvimento de Software Multiplataforma', 1400, 'DSM', 5),
-(103, 'Recursos Humanos', 1400, 'GRH', 4)
+(102, 'Desenvolvimento de Software Multiplataforma', 1400, 'DSM', 5)
 
 -- Valores de teste para tabela Disciplina
 -- Curso 101
@@ -701,7 +705,9 @@ INSERT INTO disciplina VALUES
 (1040, 'Programação para Mainframes', 4, '14:50', '18:20', 'Quarta', 101)
 
 INSERT INTO disciplina VALUES
-(1041, 'Programação DSM', 4, '13:00', '16:30', 'Segunda', 102)
+(1041, 'Programação DSM', 4, '13:00', '16:30', 'Segunda', 102),
+(1042, 'Programação Front-end', 4, '13:00', '16:30', 'Quarta', 102),
+(1043, ''
 
 
 -- Valores de teste para tabela Conteudo
@@ -791,4 +797,9 @@ INSERT INTO conteudo VALUES
 (10082, 'Periféricos de Entrada e Saída', 1017),
 (10083, 'Arquiteturas de Computadores', 1017),
 (10084, 'Manutenção e Montagem de Computadores', 1017),
-(10085, 'Diagnóstico e Solução de Problemas de Hardware', 1017)
+(10085, 'Diagnóstico e Solução de Problemas de Hardware', 1017),
+(10086, 'Conceitos Básicos de Sistemas Operacionais', 1018),
+(10087, 'Processos e Threads', 1018),
+(10088, 'Gerenciamento de Memória e Dispositivos', 1018),
+(10089, 'Sistemas de Arquivos e Diretórios', 1018),
+(10090, 'Redes em Sistemas Operacionais', 1018),
